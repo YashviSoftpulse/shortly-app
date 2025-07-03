@@ -1,0 +1,425 @@
+vertical-border {
+  height: 50px;
+  width: 1px;
+  background-color: #dfe3e8;
+  margin: 0 35px 0 0;
+}
+
+.Polaris-InlineGrid.dashbord-icon .Polaris-Icon {
+  height: 30px;
+  width: 33px;
+}
+
+.highcharts-legend-item.highcharts-pie-series span {
+  top: -3px !important;
+}
+
+.chart .highcharts-container {
+  height: 404px !important;
+}
+
+.qr-code canvas {
+  position: relative;
+  box-shadow: var(--p-shadow-bevel-100);
+  border-radius: var(--p-border-radius-300);
+  padding: 12px;
+}
+
+.Polaris-BlockStack.qr-code {
+  text-align: center;
+}
+
+.qr-code-contener {
+  margin: auto;
+}
+
+canvas {
+  position: absolute;
+  margin: auto;
+}
+
+.qr-code button {
+  width: max-content;
+  align-self: center;
+}
+
+.Polaris-DatePicker__Header {
+  padding: 10px;
+}
+
+.Polaris-DatePicker__MonthContainer {
+  border-left: var(--p-border-width-025) solid var(--p-color-border);
+  padding: 10px;
+  right: 71.621px;
+}
+
+.fade-in-slide-up {
+  padding-bottom: 40px;
+}
+
+.fade-in-slide-up .Polaris-Thumbnail::after {
+  box-shadow: 0rem 0rem 0rem 0.0625rem rgba(0, 0, 0, 0) inset;
+}
+
+.fade-in-slide-up .Polaris-Thumbnail--sizeLarge {
+  width: 119px;
+  height: 120px;
+}
+
+.no-qr .Polaris-Thumbnail {
+  width: 130px;
+  height: 130px;
+}
+
+.no-qr .Polaris-Thumbnail::after {
+  box-shadow: 0rem 0rem 0rem 0.0625rem rgba(0, 0, 0, 0) inset;
+}
+
+.no-qr {
+  padding: 30px 0 55px;
+}
+
+.app-chat {
+  position: fixed;
+  right: 19px;
+  bottom: 15px;
+  padding: 12px;
+  background-color: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  display: flex;
+}
+
+.app-chat svg {
+  display: block;
+  max-width: 32px;
+  width: 100%;
+  height: auto;
+}
+
+.app-email {
+  position: fixed;
+  right: 19px;
+  bottom: 15px;
+  padding: 12px;
+  display: flex;
+}
+
+.export-container .Polaris-InlineStack .Polaris-IndexFilters__IndexFiltersWrapper {
+  width: calc(100% - var(--p-width-3200));
+}
+
+.bulk-container .Polaris-InlineStack .Polaris-IndexFilters__IndexFiltersWrapper {
+  width: calc(100% - 12rem);
+}
+
+.plan-card.Polaris-Layout__Section {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.plan-card .Polaris-ShadowBevel {
+  min-width: calc(100% - 70%);
+}
+
+.plan-card .Polaris-Grid-Cell .Polaris-ShadowBevel {
+  width: 100%;
+  gap: 10px;
+}
+
+.plan-card .Polaris-Grid {
+  min-width: calc(100% - 0%);
+  gap: 20px;
+}
+
+.plan-card .Polaris-Box,
+.plan-card .Polaris-BlockStack {
+  height: 100%;
+}
+
+.plan-card .Polaris-BlockStack .Polaris-List {
+  margin-bottom: 20px;
+}
+
+.plan-card .Polaris-Button {
+  margin-top: auto;
+}
+
+.premium-plan {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 40px);
+  text-align: center;
+}
+
+.premium-plan-influencer {
+  text-align: center;
+  margin: 40px;
+}
+
+.premium-plan-influencer p {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.premium-plan-influencer .Polaris-Button--variantSecondary {
+  margin: auto;
+}
+
+.premium-plan a {
+  display: block;
+  color: #007bb1;
+}
+
+.premium-plan p {
+  display: inline-grid;
+  gap: 3px;
+}
+
+.hide-button .Polaris-Button--variantPrimary {
+  display: none !important;
+}
+
+.premium-plan .Polaris-Button__Icon {
+  margin-top: 0.6px;
+  padding: 0 3px;
+}
+
+/* Create programs */
+.checkboxPolaris {
+  row-gap: 50px;
+}
+
+.checkboxPolaris label,
+.commissionRules {
+  max-width: calc(33.33% - 15px);
+  width: 100%;
+}
+
+.commissionTypes {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+}
+
+.commissionTypes>div {
+  width: 50%;
+}
+
+.mainCommissionRules,
+.mainProgramDiscount {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.programDiscount {
+  max-width: calc(50% - 15px);
+  width: 100%;
+}
+
+.mainCreateProgram {
+  display: flex;
+  gap: 15px;
+}
+
+.mainCreateProgram .leftCreateProgram {
+  width: 70%;
+}
+
+.mainCreateProgram .rightCreateProgram {
+  width: 30%;
+}
+
+.affiliatePrograms {
+  width: 100%;
+  max-width: calc(50% - 20px);
+}
+
+/* Commission Summary - influencer overview */
+.programTableName .Polaris-Box {
+  padding: 0;
+}
+
+.programTableName table .Polaris-Box {
+  padding: 0;
+}
+
+.programTableName nav .Polaris-InlineStack {
+  padding: 5px;
+}
+
+/*  influencer dashboard - overview and links cards */
+.influencerDashboardCards,
+.influencerDashboardCardsLinks {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.influencerDashboardCards .Polaris-ShadowBevel {
+  min-width: calc(50% - 10px);
+  width: fit-content;
+}
+
+.influencerDashboardCards .Polaris-ShadowBevel .Polaris-Box,
+.influencerDashboardCardsLinks .Polaris-ShadowBevel .Polaris-Box {
+  padding: 10px;
+}
+
+.influencerDashboardCardsLinks .Polaris-ShadowBevel {
+  min-width: calc(25% - 12px);
+  width: fit-content;
+}
+
+/* influencer dashboard - tabs */
+.influencerDashboardTabs .Polaris-Box {
+  padding: 0 0;
+}
+
+.influencerDashboardTabs .Polaris-Tabs,
+.tableListPageInfluncer .Polaris-Box {
+  padding: 0;
+}
+
+.tableListPageInfluncer,
+.OverviewPageInfluncer {
+  margin-bottom: 20px;
+}
+
+/* For influencer List */
+.maininfluncerlist {
+  margin-bottom: 20px;
+}
+
+.custom-toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.influencerUpdateswitch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.influencerUpdateswitch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.influencerUpdateslider {
+  position: absolute;
+  cursor: pointer;
+  background-color: #ccc;
+  border-radius: 24px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: 0.4s;
+}
+
+.influencerUpdateslider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked+.influencerUpdateslider {
+  background-color: #000000;
+}
+
+input:checked+.influencerUpdateslider:before {
+  transform: translateX(22px);
+}
+
+.influencerUpdateslider.round {
+  border-radius: 24px;
+}
+
+.influencerListTabs .Polaris-Box {
+  padding-left: 0;
+}
+
+.influencerListSearch {
+  display: flex;
+  padding: 12px;
+}
+
+.influencerInfoCard {
+  padding: 0;
+  margin: 12px;
+}
+
+.tableListPageInfluncer nav .Polaris-ButtonGroup__Item .Polaris-Box {
+  padding: 5px;
+}
+
+.influencerDashboardOrderCards {
+  display: flex;
+  gap: 15px;
+}
+
+.influencerDashboardOrderCards .Polaris-ShadowBevel {
+  width: 100%;
+  max-width: calc(33.33% - 5px);
+}
+
+.sortingListInfluencer {
+  padding-left: 10px;
+  min-width: 192px;
+}
+
+.sortingListInfluencer .Polaris-Text--root {
+  padding-right: 5px;
+}
+
+.influencerPlatform .Polaris-Box {
+  padding: 10px;
+}
+
+.influencerPlatform .Polaris-BlockStack p {
+  border-bottom: 1px dotted #b6b5b5;
+  max-width: fit-content;
+}
+
+.influencerPlatform .Polaris-BlockStack {
+  width: 100%;
+  max-width: calc(25% - 15px);
+  border-right: 1px solid #b6b5b5;
+}
+
+.influencerPlatform .Polaris-BlockStack:last-child {
+  border-right: none;
+}
+
+.setting-icon {
+  margin: 0;
+}
+
+.email-page .Polaris-Box {
+  border-radius: var(--p-border-radius-300);
+  overflow: unset;
+}
+
+.email-page .Polaris-ShadowBevel {
+  overflow: unset;
+  z-index: unset;
+}
