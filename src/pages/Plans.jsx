@@ -41,7 +41,12 @@ const Plans = () => {
     formData.append("plan_index", encodedIndex);
     const response = await fetchData(getApiURL("pricing"), formData);
     if (response.status === true) {
-      window.open(response.confirmation_url, "_blank");
+      if (response.confirmation_url) {
+        window.open(response.confirmation_url, "_blank");
+      } else {
+        shopify.toast.show(response.message, { duration: 3000 });
+        window.location.href = `/dashboard${window.location.search}`;
+      }
     }
   };
 

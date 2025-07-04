@@ -125,9 +125,10 @@ function View({
     console.error('Invalid JSON in utm_datas');
   }
 
-  const validUtmEntries = Object.entries(parsedUtmData).filter(
+  const validUtmEntries = Object.entries(parsedUtmData || {}).filter(
     ([key, value]) => value?.trim() !== ''
   );
+
 
   const handleCopy = (text, itemId) => {
     navigator.clipboard
@@ -638,7 +639,7 @@ function View({
                   }}
                 >
                   {data[id]?.qr_code ? (
-                    <>
+                    <BlockStack gap={100}>
                       <div ref={qrCodeRef} className="qr-code-contener">
                         <QRCode
                           value={buildQueryParams(
@@ -648,7 +649,7 @@ function View({
 
                             ) + `?${data[id]?.qr_code}`
                           )}
-                          size={APIPath === "influencer-analytics" ? 131 : 131}
+                          size={APIPath === 'influencer-analytics' && validUtmEntries.length === 0 ? 131 : 210}
                         />
                       </div>
                       <Button
@@ -658,7 +659,7 @@ function View({
                       >
                         Download
                       </Button>
-                    </>
+                    </BlockStack>
                   ) : (
                     <div className="no-qr">
                       <BlockStack inlineAlign="center" gap={300}>

@@ -598,7 +598,7 @@ function Details() {
     console.error('Invalid JSON in utm_datas');
   }
 
-  const validUtmEntries = Object.entries(parsedUtmData).filter(([key, value]) => value?.trim() !== '');
+  const validUtmEntries = Object.entries(parsedUtmData || {}).filter(([key, value]) => value?.trim() !== '');
 
   const CountriesChart = () => {
     const categories = Object.entries(checkAPIForAnalytics?.countries || {}).map(
@@ -654,7 +654,7 @@ function Details() {
         showErrorMessage(withShopURL, "Custom URL") ||
         showErrorMessage(customURL, "Short URL")
       )
-        return { height: APIPath !== "influencer-analytics" ? "13.6rem" : "8.8rem" };
+        return { height: APIPath === 'influencer-analytics' && validUtmEntries.length === 0 ?  "8.8rem" : "13.6rem" };
     }
   };
 
@@ -1638,7 +1638,7 @@ function Details() {
               >
                 {responseData[productId]?.qr_code &&
                   data?.plan_details?.features?.qr_code_create ? (
-                  <>
+                  <BlockStack gap={100}>
                     <div style={calculateHeight()} ref={qrCodeRef}>
                       <QRCode
                         value={buildQueryParams(
@@ -1648,9 +1648,10 @@ function Details() {
 
                           ) + `?${responseData[productId]?.qr_code}`
                         )}
-                        size={APIPath === 'influencer-analytics' ? 131 : 131}
+                        size={APIPath === 'influencer-analytics' && validUtmEntries.length === 0 ? 131 : 210}
                       />
                     </div>
+                    
                     <Button
                       variant="primary"
                       icon={ArrowDownIcon}
@@ -1658,7 +1659,7 @@ function Details() {
                     >
                       Download
                     </Button>
-                  </>
+                  </BlockStack>
                 ) : (
                   <div className="no-qr" style={calculateHeight("blank")}>
                     <BlockStack inlineAlign="center" gap={400}>

@@ -14,9 +14,7 @@ import {
   Tooltip,
   Icon,
   FormLayout,
-  Select,
   Box,
-  Link,
 } from "@shopify/polaris";
 import React, { useEffect, useState } from "react";
 import { fetchData, getApiURL } from "../action";
@@ -78,10 +76,8 @@ const Listing = () => {
       .then(() => {
         // Show checkmark icon immediately for better UX
         setCopiedItems(prev => ({ ...prev, [itemId]: true }));
-        
         // Show toast notification
         shopify.toast.show("Copied to Clipboard", { duration: 3000 });
-        
         // Return to clipboard icon after 1.5 seconds (faster response)
         setTimeout(() => {
           setCopiedItems(prev => ({ ...prev, [itemId]: false }));
