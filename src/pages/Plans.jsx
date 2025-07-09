@@ -50,6 +50,14 @@ const Plans = () => {
     }
   };
 
+  const entries = Object.entries(planDetail);
+  const visible =
+    data?.version === 1
+      ? [entries[0], entries[2]].filter(Boolean)
+      : data?.version === 2
+      ? entries.slice(0, 3)
+      : [];
+
   useEffect(() => {
     getPricingPlanData();
   }, []);
@@ -72,7 +80,10 @@ const Plans = () => {
           {isLoding ? (
             <Grid>
               {[1, 2, 3].map((item) => (
-                <Grid.Cell key={item} columnSpan={{ xs: 6, sm: 6, md: 4, lg: 4, xl: 4 }}>
+                <Grid.Cell
+                  key={item}
+                  columnSpan={{ xs: 3, sm: 2, md: 2, lg: 4, xl: 4 }}
+                >
                   <Card>
                     <BlockStack gap="400">
                       <SkeletonTabs count={2} />
@@ -87,94 +98,120 @@ const Plans = () => {
               ))}
             </Grid>
           ) : (
-            Object.entries(planDetail || {}).map(([key, plan], index) => (
-              <Card key={key}>
-                <BlockStack gap="300">
-                  <InlineStack align="space-between">
-                    <InlineStack gap={200}>
-                      <Text variant="bodyLg" as="p">
-                        {plan.name} Plan
-                      </Text>
+            visible.map(([key, plan]) => {
+              const origIndex = entries.findIndex((e) => e[0] === key);
+              console.log("origIndex", origIndex);
 
-                    </InlineStack>
-                    {data?.plan_details?.name ===
-                      key.charAt(0).toUpperCase() +
-                      key.slice(1).toLowerCase() && (
+              return (
+                <Card key={key}>
+                  <BlockStack gap="300">
+                    <InlineStack align="space-between">
+                      <InlineStack gap={200}>
+                        <Text variant="bodyLg" as="p">
+                          {plan.name} Plan
+                        </Text>
+                      </InlineStack>
+                      {data?.plan_details?.name ===
+                        key.charAt(0).toUpperCase() +
+                          key.slice(1).toLowerCase() && (
                         <Badge tone="success">Active</Badge>
                       )}
-                  </InlineStack>
-                  <InlineStack gap={100} >
-                    <Text variant="headingLg">
-                      {plan.price === 0 ? "Free" : `$${plan.price}`}
-                    </Text>
+                    </InlineStack>
+                    <InlineStack gap={100}>
+                      <Text variant="headingLg">
+                        {plan.price === 0 ? "Free" : `$${plan.price}`}
+                      </Text>
+                      {key === "grow" && <Text> /month</Text>}
+                      {key === "amplify" && <Text> /month</Text>}
+                    </InlineStack>
 
-                    {key === "grow" && <Text> /month</Text>}
-                    {key === "amplify" && <Text> /month</Text>}
-                  </InlineStack>
+                    <Divider />
+                    <BlockStack gap={500}>
+                      <List>
+                        {origIndex === 0 && data.version === 1 ? (
+                          <>
+                            <List.Item>Unlimited Short URL</List.Item>
+                            <List.Item>Unlimited Custom Link</List.Item>
+                            <List.Item>URL & Checkout Tracking,</List.Item>
+                            <List.Item>QR Code Generation & Download</List.Item>
+                            <List.Item>Bulk Link Generation</List.Item>
+                            <List.Item>Export Links to CSV</List.Item>
+                            <List.Item>Order Tracking via URL</List.Item>
+                            <List.Item>Email & Chat Support</List.Item>
+                          </>
+                        ) : (
+                          origIndex === 0 &&
+                          data?.version === 2 && (
+                            <>
+                              <List.Item>Unlimited Short URL</List.Item>
+                              <List.Item>Unlimited Custom Link</List.Item>
+                              <List.Item>URL Tracking</List.Item>
+                              <List.Item>Email & Chat Support</List.Item>
+                            </>
+                          )
+                        )}
+                        {origIndex === 1 &&
+                          data?.version === 2 && ( // Grow Plan
+                            <>
+                              <List.Item>All Features in FREE +</List.Item>
+                              <List.Item>
+                                QR Code Generation & Download
+                              </List.Item>
+                              <List.Item>Bulk Link Generation</List.Item>
+                              <List.Item>Export Links to CSV</List.Item>
+                              <List.Item>Order Tracking via URL</List.Item>
+                              <List.Item>Custom Domain</List.Item>
+                              <List.Item>Allow 1 Influencer</List.Item>
+                              <List.Item>Allow 2 Influencer Links</List.Item>
+                              <List.Item>Email & Chat Support</List.Item>
+                            </>
+                          )}
+                        {origIndex === 2 && (
+                          <>
+                            <List.Item>All Features in Grow +</List.Item>
+                            <List.Item>Unlimited Influencers</List.Item>
+                            <List.Item>Unlimited Influencer Links</List.Item>
+                            <List.Item>Priority Email & Chat Support</List.Item>
+                          </>
+                        )}
+                      </List>
 
-                  <Divider />
-                  <BlockStack gap={500}>
-                    <List>
-                      {index === 0 && (  // Free Plan
-                        <>
-                          <List.Item>Unlimited Short URL</List.Item>
-                          <List.Item>Unlimited Custom Link</List.Item>
-                          <List.Item>URL Tracking</List.Item>
-                          <List.Item>Email Support</List.Item>
-                          <List.Item>URL & Checkout Tracking</List.Item>
-                          <List.Item>Email & Chat Support</List.Item>
-                        </>
+                      {data?.plan_details?.name !==
+                        key.charAt(0).toUpperCase() +
+                          key.slice(1).toLowerCase() && (
+                        <Button
+                          variant="primary"
+                          onClick={() => getPricingPlan(origIndex)}
+                        >
+                          {data?.plan_details?.name === "Free" &&
+                            origIndex === 1 &&
+                            "Upgrade To Grow"}
+                            {data?.plan_details?.name === "Free" &&
+                            origIndex === 2 &&
+                            "Upgrade To Amplify"}
+                          {data?.plan_details?.name === "Grow" &&
+                            origIndex === 2 &&
+                            "Upgrade To Amplify"}
+                          {data?.plan_details?.name === "Grow" &&
+                            origIndex === 0 &&
+                            "Downgrade To Free"}
+                          {data?.plan_details?.name === "Amplify" &&
+                            origIndex === 1 &&
+                            "Upgrade To Grow"}
+                          {data?.plan_details?.name === "Amplify" &&
+                            origIndex === 0 &&
+                            "Downgrade To Free"}
+                        </Button>
                       )}
-                      {index === 1 && ( // Grow Plan
-                        <>
-                          <List.Item>All Features in FREE +</List.Item>
-                          <List.Item>QR Code Generation & Download</List.Item>
-                          <List.Item>Bulk Link Generation</List.Item>
-                          <List.Item>Export Links to CSV</List.Item>
-                          <List.Item>URL Tracking</List.Item>
-                          <List.Item>Order Tracking via URL</List.Item>
-                          <List.Item>Email & Chat Support</List.Item>
-                          <List.Item>Create 1 Influencer</List.Item>
-                          <List.Item>Each Influencer can create up to 2 Links</List.Item>
-                        </>
-                      )}
-                      {index === 2 && ( // Amplify Plan
-                        <>
-                          <List.Item>All Features in FREE +</List.Item>
-                          <List.Item>QR Code Generation & Download</List.Item>
-                          <List.Item>Bulk Link Generation</List.Item>
-                          <List.Item>Export Links to CSV</List.Item>
-                          <List.Item>URL Tracking</List.Item>
-                          <List.Item>Order Tracking via URL</List.Item>
-                          <List.Item>Email & Chat Support</List.Item>
-                          <List.Item>Unlimited Influencer</List.Item>
-                          <List.Item>Unlimited Link creation per Influencer</List.Item>
-                        </>
-                      )}
-                    </List>
-                    {data?.plan_details?.name?.toLowerCase() !== key.toLowerCase() && (
-                      <Button variant="primary" onClick={() => getPricingPlan(index)}>
-                        {data?.plan_details?.name === "Grow" && index === 0 && "Downgrade to Free"}
-                        {data?.plan_details?.name === "Free" && index === 1 && "Upgrade to Grow"}
-                        {data?.plan_details?.name === "Grow" && index === 2 && "Upgrade to Amplify"}
-                        {data?.plan_details?.name === "Amplify" && index === 1 && "Downgrade to Grow"}
-                        {!(
-                          (data?.plan_details?.name === "Grow" && index === 0) ||
-                          (data?.plan_details?.name === "Free" && index === 1) ||
-                          (data?.plan_details?.name === "Grow" && index === 2) ||
-                          (data?.plan_details?.name === "Amplify" && index === 1)
-                        ) && "Choose Plan"}
-                      </Button>
-                    )}
-
+                    </BlockStack>
                   </BlockStack>
-                </BlockStack>
-              </Card>
-            ))
+                </Card>
+              );
+            })
           )}
         </div>
       </Layout>
-    </Page >
+    </Page>
   );
 };
 
