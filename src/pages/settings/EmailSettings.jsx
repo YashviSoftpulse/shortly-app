@@ -477,7 +477,7 @@ function EmailSettings() {
             >
               <Card padding={data?.plan_details?.name === "Free" ? 400 : 400}>
                 <div
-                  class="Polaris-Box"
+                  className="Polaris-Box"
                   style={{
                     ...(data?.plan_details?.name === "Free" && {
                       filter: "blur(2px)",
@@ -556,7 +556,7 @@ function EmailSettings() {
             >
               <Card padding={data?.plan_details?.name === "Free" ? 400 : 400}>
                 <div
-                  class="Polaris-Box"
+                  className="Polaris-Box"
                   style={{
                     ...(data?.plan_details?.name === "Free" && {
                       filter: "blur(2px)",
@@ -675,7 +675,7 @@ function EmailSettings() {
             >
                   <Card padding={data?.plan_details?.name === "Free" ? 400 : 400}>
                 <div
-                  class="Polaris-Box"
+                  className="Polaris-Box"
                   style={{
                     ...(data?.plan_details?.name === "Free" && {
                       filter: "blur(2px)",
@@ -752,7 +752,7 @@ function EmailSettings() {
             >
               <Card padding={0}>
                 <div
-                  class="Polaris-Box"
+                  className="Polaris-Box"
                   style={{
                     ...(data?.plan_details?.name === "Free" && {
                       filter: "blur(2px)",

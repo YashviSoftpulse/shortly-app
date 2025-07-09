@@ -200,7 +200,7 @@ const downloadQRCode = () => {
                   ?.total_clicks_listing_page &&
                   !plancheck?.plan_details?.features
                     ?.total_clicks_product_page && (
-                    <div class="premium-plan">
+                    <div className="premium-plan">
                       <p>
                         View total clicks with
                         <Button
@@ -257,7 +257,7 @@ const downloadQRCode = () => {
                   ?.total_add_to_cart_listing_page &&
                   !plancheck?.plan_details?.features
                     ?.total_add_to_cart_product_page && (
-                    <div class="premium-plan">
+                    <div className="premium-plan">
                       <p>
                         View total add to cart with
                         <Button
@@ -316,7 +316,7 @@ const downloadQRCode = () => {
                   ?.total_checkouts_listing_page &&
                   !plancheck?.plan_details?.features
                     ?.total_checkouts_product_page && (
-                    <div class="premium-plan">
+                    <div className="premium-plan">
                       <p>
                         View total checkouts with
                         <Button
@@ -374,7 +374,7 @@ const downloadQRCode = () => {
                 {!plancheck?.plan_details?.features?.total_sales_listing_page &&
                   !plancheck?.plan_details?.features
                     ?.total_sales_product_page && (
-                    <div class="premium-plan">
+                    <div className="premium-plan">
                       <p>
                         View total sales with
                         <Button
@@ -607,7 +607,7 @@ const downloadQRCode = () => {
                   QR Code
                 </Text>
                 {!plancheck?.plan_details?.features?.qr_code_create && (
-                  <div class="premium-plan">
+                  <div className="premium-plan">
                     <p>
                       Get more insight with{" "}
                       <Button
@@ -637,7 +637,7 @@ const downloadQRCode = () => {
                   </div>
                 )}
                 <div
-                  class="Polaris-Box"
+                  className="Polaris-Box"
                   style={{
                     ...(!plancheck?.plan_details?.features?.qr_code_create && {
                       filter: "blur(3px)",

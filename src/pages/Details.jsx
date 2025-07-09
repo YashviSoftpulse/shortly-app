@@ -805,7 +805,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
           <InlineGrid gap="200" columns={4}>
             <Card>
               {!data?.plan_details?.features?.total_clicks_product_page && (
-                <div class="premium-plan">
+                <div className="premium-plan">
                   <p>
                     View total clicks with
                     <Button
@@ -866,7 +866,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                 <Divider />
                 {!data?.plan_details?.features
                   ?.detailed_clicks_product_page && (
-                  <div class="premium-plan">
+                  <div className="premium-plan">
                     <p>
                       Get more insight with
                       <Button
@@ -944,7 +944,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
             <Card>
               {!data?.plan_details?.features
                 ?.total_add_to_cart_product_page && (
-                <div class="premium-plan">
+                <div className="premium-plan">
                   <p>
                     View total add to cart with
                     <Button
@@ -1009,7 +1009,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                 <Divider />
                 {!data?.plan_details?.features
                   ?.detailed_add_to_cart_product_page && (
-                  <div class="premium-plan">
+                  <div className="premium-plan">
                     <p>
                       Get more insight with
                       <Button
@@ -1085,7 +1085,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
             </Card>
             <Card>
               {!data?.plan_details?.features?.total_checkouts_product_page && (
-                <div class="premium-plan">
+                <div className="premium-plan">
                   <p>
                     View total checkouts with
                     <Button
@@ -1150,7 +1150,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                 <Divider />
                 {!data?.plan_details?.features
                   ?.detailed_checkouts_product_page && (
-                  <div class="premium-plan">
+                  <div className="premium-plan">
                     <p>
                       Get more insight with
                       <Button
@@ -1226,7 +1226,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
             </Card>
             <Card>
               {!data?.plan_details?.features?.total_sales_product_page && (
-                <div class="premium-plan">
+                <div className="premium-plan">
                   <p>
                     View total sales with
                     <Button
@@ -1296,7 +1296,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                 </InlineStack>
                 <Divider />
                 {!data?.plan_details?.features?.detailed_sales_product_page && (
-                  <div class="premium-plan">
+                  <div className="premium-plan">
                     <p>
                       Get more insight with
                       <Button
@@ -1458,7 +1458,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                       </InlineStack>
                     </InlineStack>
                     {!data?.plan_details?.features?.short_url_create && (
-                      <div class="premium-plan">
+                      <div className="premium-plan">
                         <p>
                           Get more insight with
                           <Button
@@ -1562,7 +1562,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                   </Tooltip>
                 </InlineStack>
                 {!data?.plan_details?.features?.custom_url_create && (
-                  <div class="premium-plan">
+                  <div className="premium-plan">
                     <p>
                       Get more insight with
                       <Button
@@ -1696,7 +1696,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                 QR Code
               </Text>
               {!data?.plan_details?.features?.qr_code_create && (
-                <div class="premium-plan">
+                <div className="premium-plan">
                   <p>
                     Get more insight with
                     <Button
@@ -1870,7 +1870,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                   </InlineStack>
                   {!data?.plan_details?.features
                     ?.device_analytics_product_page && (
-                    <div class="premium-plan">
+                    <div className="premium-plan">
                       <p>
                         Get more insight with
                         <Button
@@ -1900,7 +1900,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                     </div>
                   )}
                   <div
-                    class="Polaris-Box"
+                    className="Polaris-Box"
                     style={{
                       ...(!data?.plan_details?.features
                         ?.device_analytics_product_page && {
@@ -1996,7 +1996,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                   </InlineStack>
                   {!data?.plan_details?.features
                     ?.platform_analytics_product_page && (
-                    <div class="premium-plan">
+                    <div className="premium-plan">
                       <p>
                         Get more insight with
                         <Button
@@ -2026,7 +2026,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                     </div>
                   )}
                   <div
-                    class="Polaris-Box"
+                    className="Polaris-Box"
                     style={{
                       ...(!data?.plan_details?.features
                         ?.platform_analytics_product_page && {

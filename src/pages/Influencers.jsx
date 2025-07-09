@@ -431,7 +431,7 @@ function Influencers() {
       >
         <Modal.Section>
           {showUpgradeModal && (
-            <div class="premium-plan-influencer">
+            <div className="premium-plan-influencer">
               <p>
                 Upgrade your plan to connect with influencers and track
                 results—all in one place.
@@ -521,7 +521,7 @@ function Influencers() {
             ) : (
               <div className="maininfluncerlist">
                 {data?.plan_details?.name === "Free" ? (
-                  <div class="premium-plan-influencer">
+                  <div className="premium-plan-influencer">
                     <p>
                       Upgrade your plan to connect with influencers and track
                       results—all in one place.

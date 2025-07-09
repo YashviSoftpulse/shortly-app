@@ -635,7 +635,7 @@ function Overview({ selectedDates }) {
                     <Text variant="bodyMd" fontWeight="bold">
                       Click Analytics
                     </Text>
-                    <div class="Polaris-Box">{initClickAnalyticsChart()}</div>
+                    <div className="Polaris-Box">{initClickAnalyticsChart()}</div>
                   </BlockStack>
                 </Card>
               </Layout.Section>
@@ -656,7 +656,7 @@ function Overview({ selectedDates }) {
                           </Tooltip>
                         </InlineStack>
 
-                        <div class="Polaris-Box">{initDeviceUsageChart()}</div>
+                        <div className="Polaris-Box">{initDeviceUsageChart()}</div>
                       </BlockStack>
                     </Card>
                   </Layout.Section>
@@ -675,7 +675,7 @@ function Overview({ selectedDates }) {
                           </Tooltip>
                         </InlineStack>
 
-                        <div class="Polaris-Box">
+                        <div className="Polaris-Box">
                           {PlatformsAnalyticsChart()}
                         </div>
                       </BlockStack>

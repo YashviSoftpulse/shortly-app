@@ -76,7 +76,7 @@ const Plans = () => {
           </InlineStack>
         </Layout.Section>
         <Layout.Section></Layout.Section>
-        <div class="Polaris-Layout__Section plan-card">
+        <div className="Polaris-Layout__Section plan-card">
           {isLoding ? (
             <Grid>
               {[1, 2, 3].map((item) => (

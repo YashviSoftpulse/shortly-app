@@ -56,7 +56,7 @@ function ConfirmationModal({
     >
       <Modal.Section>
         {show && (
-          <div class="premium-plan">
+          <div className="premium-plan">
             <p>
               Get more insight with{" "}
               <Button
@@ -84,7 +84,7 @@ function ConfirmationModal({
           </div>
         )}
         <div
-          class="Polaris-BlockStack"
+          className="Polaris-BlockStack"
           style={{
             "--pc-block-stack-order": "column",
             "--pc-block-stack-gap-xs": "var(--p-space-200)",

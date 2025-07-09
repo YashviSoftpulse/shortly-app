@@ -10,7 +10,8 @@ import {
 } from "@shopify/polaris";
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchData, getApiURL } from "../../../action";
+import { fetchData, getApiURL } from "../../action";
+
 
 function Create({ onClose, onSuccess }) {
   const [amount, setAmount] = useState("");

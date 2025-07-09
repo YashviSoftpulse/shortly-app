@@ -433,7 +433,7 @@ const Listing = () => {
                     <Divider />
 
                     {!data?.plan_details?.features?.short_url_create && (
-                      <div class="premium-plan">
+                      <div className="premium-plan">
                         <p>
                           Get more insight with{" "}
                           <Button
@@ -520,7 +520,7 @@ const Listing = () => {
                     <Divider />
 
                     {!data?.plan_details?.features?.custom_url_create && (
-                      <div class="premium-plan">
+                      <div className="premium-plan">
                         <p>
                           Get more insight with{" "}
                           <Button

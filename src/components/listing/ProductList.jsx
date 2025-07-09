@@ -271,7 +271,7 @@ const ProductList = ({ selectedTab }) => {
               </InlineStack>
             ) : (
               <div
-                class="Polaris-InlineStack"
+                className="Polaris-InlineStack"
                 style={{
                   " --pc-inline-stack-align": "start",
                   "--pc-inline-stack-wrap": "wrap",

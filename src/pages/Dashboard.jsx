@@ -378,7 +378,7 @@ function Dashboard() {
           <InlineGrid columns={4} gap={400}>
             <Card>
               {!data?.plan_details?.features?.total_clicks_dashboard && (
-                <div class="premium-plan">
+                <div className="premium-plan">
                   <p>
                     View total clicks with
                     <Button
@@ -437,7 +437,7 @@ function Dashboard() {
             </Card>
             <Card>
               {!data?.plan_details?.features?.total_add_to_cart_dashboard && (
-                <div class="premium-plan">
+                <div className="premium-plan">
                   <p>
                     View total add to cart with
                     <Button
@@ -493,7 +493,7 @@ function Dashboard() {
             </Card>
             <Card>
               {!data?.plan_details?.features?.total_checkouts_dashboard && (
-                <div class="premium-plan">
+                <div className="premium-plan">
                   <p>
                     View total checkouts with
                     <Button
@@ -549,7 +549,7 @@ function Dashboard() {
             </Card>
             <Card>
               {!data?.plan_details?.features?.total_sales_dashboard && (
-                <div class="premium-plan">
+                <div className="premium-plan">
                   <p>
                     View total sales with
                     <Button
@@ -611,7 +611,7 @@ function Dashboard() {
             <BlockStack gap={300}>
               <Text variant="headingMd">Click Analytics</Text>
               {!data?.plan_details?.features?.click_analytics_dashboard && (
-                <div class="premium-plan">
+                <div className="premium-plan">
                   <p>
                     Get more insight with{" "}
                     <Button
@@ -673,7 +673,7 @@ function Dashboard() {
                   </InlineStack>
                   {!data?.plan_details?.features
                     ?.device_analytics_dashboard && (
-                    <div class="premium-plan">
+                    <div className="premium-plan">
                       <p>
                         Get more insight with{" "}
                         <Button
@@ -704,7 +704,7 @@ function Dashboard() {
                     </div>
                   )}
                   <div
-                    class="Polaris-Box"
+                    className="Polaris-Box"
                     style={{
                       ...(!data?.plan_details?.features
                         ?.device_analytics_dashboard && {
@@ -732,7 +732,7 @@ function Dashboard() {
                 }}
               >
                 {!data?.plan_details?.features?.browser_analytics_dashboard && (
-                  <div class="premium-plan">
+                  <div className="premium-plan">
                     <p>
                       Get more insight with{" "}
                       <Button
@@ -797,7 +797,7 @@ function Dashboard() {
                   </InlineStack>
                   {!data?.plan_details?.features
                     ?.platform_analytics_dashboard && (
-                    <div class="premium-plan">
+                    <div className="premium-plan">
                       <p>
                         Get more insight with{" "}
                         <Button
@@ -859,7 +859,7 @@ function Dashboard() {
               >
                 {!data?.plan_details?.features
                   ?.location_analytics_dashboard && (
-                  <div class="premium-plan">
+                  <div className="premium-plan">
                     <p>
                       Get more insight with{" "}
                       <Button
@@ -923,7 +923,7 @@ function Dashboard() {
               >
                 {!data?.plan_details?.features
                   ?.location_analytics_dashboard && (
-                  <div class="premium-plan">
+                  <div className="premium-plan">
                     <p>
                       Get more insight with{" "}
                       <Button
@@ -988,7 +988,7 @@ function Dashboard() {
               >
                 {!data?.plan_details?.features
                   ?.location_analytics_dashboard && (
-                  <div class="premium-plan">
+                  <div className="premium-plan">
                     <p>
                       Get more insight with{" "}
                       <Button
