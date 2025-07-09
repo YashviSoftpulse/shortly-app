@@ -60,7 +60,7 @@ function UpdateInfluencer() {
 
   async function getInfluencerDetail() {
     setLoading(true);
-    const response = await fetchData(getApiURL(`/get-influencers`));
+    const response = await fetchData(getApiURL(`get-influencers`));
     if (response?.status && Array.isArray(response.data)) {
       const getInfluencerInfo = response.data.find((item) => item.id === uid);
 
@@ -129,7 +129,7 @@ function UpdateInfluencer() {
 
     try {
       const response = await fetchData(
-        getApiURL(`/update-influencer`),
+        getApiURL(`update-influencer`),
         formPayload
       );
 

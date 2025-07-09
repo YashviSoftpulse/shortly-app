@@ -20,7 +20,9 @@ import {
   BlockStack,
   InlineStack,
   Divider,
-  SkeletonPage,
+  SkeletonDisplayText,
+  SkeletonBodyText,
+  Box,
 } from "@shopify/polaris";
 import { NoteIcon } from "@shopify/polaris-icons";
 import React, { useEffect } from "react";
@@ -29,6 +31,7 @@ import { useState } from "react";
 import { SketchPicker } from "react-color";
 import { useNavigate } from "react-router-dom";
 import { fetchData, getApiURL } from "../../action";
+import { useApiData } from "../../components/ApiDataProvider";
 
 function EmailSettings() {
   const [testModal, setTestModal] = useState(false);
@@ -51,34 +54,50 @@ function EmailSettings() {
   const [emailType, setEmailType] = useState("");
   const [testEmailError, setTestEmailError] = useState(false);
   const navigate = useNavigate();
+  const { data, error } = useApiData();
 
   const urlParams = new URLSearchParams(window.location.search);
   const params = {};
   for (const [key, value] of urlParams.entries()) {
     params[key] = value;
   }
+
+  const validImageTypes = [
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/svg+xml",
+    "image/heic",
+    "image/jpg",
+  ];
   const handleDropZoneDrop = useCallback(
     (_dropFiles, acceptedFiles, _rejectedFiles) => {
       setLogoError(false);
-      // Check if the file is valid and matches one of the allowed types
+
       const validFile = acceptedFiles[0];
       const fileSizeLimit = 2 * 1024 * 1024; // 2 MB
+
+      const extensionRegex = /\.(jpg|jpeg|png|gif|webp|svg|heic)$/i;
       const isValidFileType =
-        validFile && ["image/jpeg", "image/png"].includes(validFile.type);
+        validFile &&
+        (validImageTypes.includes(validFile.type) ||
+          extensionRegex.test(validFile.name));
 
       if (validFile && validFile.size > fileSizeLimit) {
         setLogoError("File size exceeds the 2MB limit");
         return;
       }
+
       if (isValidFileType) {
-        // Ensure only one file can be uploaded
         setFiles([validFile]);
       } else {
-        // If not valid, show a message or handle accordingly (optional)
-        setLogoError("Please upload a valid image file (JPG, JPEG, PNG)");
+        setLogoError(
+          "Please upload a valid image file (JPG, JPEG, PNG, GIF, HEIC, WebP, SVG)"
+        );
       }
     },
-    []
+    [validImageTypes]
   );
 
   const handleVerify = () => {
@@ -114,14 +133,13 @@ function EmailSettings() {
       setVerifyLoader(false);
     }
 
-
     shopify.toast.show(error, { isError: true, duration: 3000 });
     setVerifyLoader(false);
   };
 
   const getEmailData = async () => {
     setLoading(true);
-    const response = await fetchData(getApiURL(`/get-notification-settings`));
+    const response = await fetchData(getApiURL(`get-notification-settings`));
     if (response.status === true) {
       setLoading(false);
       setNotificationSettingsData(response?.notification_settings);
@@ -193,11 +211,12 @@ function EmailSettings() {
           onChange={(newValue) =>
             setInputVal(newValue.replace(/\s+/g, " ").trim())
           }
+          disabled={data?.plan_details?.name === "Free"}
         />
         {/* {validationError.error == type && (
           <InlineError message="Please enter valid color!" />
         )} */}
-        {selectedPicker == type && (
+        {selectedPicker === type && data?.plan_details?.name !== "Free" && (
           <div
             className="sketch-picker-wrap"
             style={{
@@ -234,8 +253,6 @@ function EmailSettings() {
   const handleLogoCheckbox = useCallback((newChecked) => {
     setIsLogo(newChecked);
   }, []);
-
-  const validImageTypes = ["image/gif", "image/jpeg", "image/png"];
 
   const fileUpload = !files.length && (
     <DropZone.FileUpload actionHint="Accepts .jpg, .jpeg and .png file" />
@@ -293,7 +310,7 @@ function EmailSettings() {
     const suffixUrl = "test-email";
     fetchData(getApiURL(suffixUrl), formdata).then((response) => {
       setTestLoading(false);
-      if (response.status === true) {
+      if (response.status === 200 || response.error === false) {
         setTestModal(false);
         shopify.toast.show(response.message, { duration: 3000 });
       } else {
@@ -382,373 +399,496 @@ function EmailSettings() {
   };
 
   return loading ? (
-    <SkeletonPage />
+    <Page
+      title="Email Notification Settings"
+      primaryAction={{
+        content: "Save",
+      }}
+      backAction={{
+        onAction: () => navigate(`/settings${window.location.search}`),
+      }}
+    >
+      <Layout>
+        <Layout.AnnotatedSection
+          title="Email Verification"
+          subtitle="Customize email notifications to receive updates on your account status"
+        >
+          <Card>
+            <BlockStack gap={300}>
+              <SkeletonDisplayText size="medium" />
+              <SkeletonBodyText lines={8} />
+              <SkeletonDisplayText size="medium" />
+              <SkeletonBodyText lines={8} />
+            </BlockStack>
+          </Card>
+        </Layout.AnnotatedSection>
+      </Layout>
+    </Page>
   ) : (
     <div className="email-page">
       <Page
-        title="Email Settings"
+        title="Email Notification Settings"
         subtitle="Customize email notifications to receive updates on your account status"
         primaryAction={{
           content: "Save",
           onAction: () => handleSave(),
           loading: saveLoader,
+          disabled: data?.plan_details?.name === "Free",
         }}
         backAction={{
           onAction: () => navigate(`/settings${window.location.search}`),
         }}
       >
-        <Layout>
-          <Layout.AnnotatedSection
-            title="Email Verification"
-            description="Authenticating your sender email helps ensure reliable delivery of your email notifications"
-          >
-            <Card>
-              <FormLayout>
-                <Banner>
-                  As per the new security modifications, we need to verify your
-                  identity before you can start sending notifications using your
-                  email address. Please click the verify button to verify your
-                  email.
-                </Banner>
-                {notificationSettingsData?.verified_status == "2" && (
-                  <Banner
-                    title="Check your Email for verification"
-                    status="info"
-                  ></Banner>
-                )}
-
-                <TextField
-                  label="Verified Sender Email"
-                  value={fromEmail}
-                  type="email"
-                  autoComplete="off"
-                  disabled={notificationSettingsData?.verified_status === "2"}
-                  helpText={
-                    notificationSettingsData?.verified_status === "1" &&
-                    notificationSettingsData?.verify_email === fromEmail &&
-                    "This Email is already verified"
-                  }
-                  error={
-                    fromEmail === undefined ? false : verifyEmailErrorMessage
-                  }
-                  onChange={(value) => {
-                    setFromEmail(value);
-                    if (value.trim()) {
-                      setVerifyEmailErrorMessage(false);
-                    }
-                  }}
-                  connectedRight={
-                    fromEmail !== "noreply@shopiapps.in" &&
-                    !(
-                      notificationSettingsData?.verified_status == "1" &&
-                      notificationSettingsData?.verify_email === fromEmail
-                    ) && (
-                      <InlineStack align="end">
-                        <Button
-                          variant="plain"
-                          loading={verifyLoader}
-                          disabled={
-                            notificationSettingsData?.verified_status === "2"
-                          }
-                          onClick={() => handleVerify()}
-                        >
-                          Verify
-                        </Button>
-                      </InlineStack>
-                    )
-                  }
-                />
-              </FormLayout>
-            </Card>
-          </Layout.AnnotatedSection>
-          <Layout.AnnotatedSection
-            title="Customize Your Email Logo"
-            description="Customize how your logo appears in emails—adjust size, position, and visibility"
-          >
-            <Card>
-              <BlockStack gap={300}>
-                <Checkbox
-                  label="Enable Email Logo"
-                  checked={isLogo}
-                  onChange={handleLogoCheckbox}
-                />
-                <Grid>
-                  <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
-                    <BlockStack gap={100}>
-                      <div className="email-logo-drop-zone-container">
-                        <DropZone
-                          onDrop={handleDropZoneDrop}
-                          allowMultiple={false}
-                        >
-                          {uploadedFiles}
-                          {fileUpload}
-                        </DropZone>
-                      </div>
-                      {logoError !== false && (
-                        <Text tone="critical">{logoError}</Text>
-                      )}
-                    </BlockStack>
-                  </Grid.Cell>
-                  <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
-                    <FormLayout>
-                      <TextField
-                        label="Width (in %)"
-                        type="number"
-                        autoComplete="off"
-                        value={notificationSettingsData?.css?.image_width}
-                        onChange={(value) =>
-                          setNotificationSettingsData((prev) => ({
-                            ...prev,
-                            css: { ...prev.css, image_width: value },
-                          }))
-                        }
-                        min={0}
-                        max={100}
-                      />
-                      <Select
-                        label="Alignment"
-                        options={[
-                          {
-                            label: "Center",
-                            value: "center",
-                          },
-                          {
-                            label: "Left",
-                            value: "left",
-                          },
-                          {
-                            label: "Right",
-                            value: "right",
-                          },
-                        ]}
-                        value={notificationSettingsData?.css?.image_align}
-                        onChange={(value) =>
-                          setNotificationSettingsData((prev) => ({
-                            ...prev,
-                            css: { ...prev.css, image_align: value },
-                          }))
-                        }
-                        min={0}
-                      />
-                    </FormLayout>
-                  </Grid.Cell>
-                </Grid>
-                {!isLogo && (
-                  <>
-                    <Bleed marginInline={400}>
-                      <Divider />
-                    </Bleed>
-                    <BlockStack gap={300}>
-                      <Banner>
-                        Customize the appearance of your email template by
-                        adding your shop logo. If the logo is not selected, your
-                        display name will be displayed instead.
-                      </Banner>
-                      <TextField
-                        label="Display Name"
-                        value={notificationSettingsData.logo_title}
-                        onChange={(value) =>
-                          setNotificationSettingsData((prev) => ({
-                            ...prev,
-                            logo_title: value,
-                          }))
-                        }
-                      />
-                    </BlockStack>
-                  </>
-                )}
-              </BlockStack>
-            </Card>
-          </Layout.AnnotatedSection>
-          <Layout.AnnotatedSection
-            title="Template Appearance"
-            description="Modify color schemes and border radius to align your emails with your store’s visual style."
-          >
-            <Card>
-              <FormLayout>
-                <BlockStack gap={200}>
-                  <Text variant=" headingSm" fontWeight="semibold">
-                    Email
-                  </Text>
-                  <FormLayout.Group condensed>
-                    {SketchPickermarkup(
-                      "textColor",
-                      "Text",
-                      textColor,
-                      setTextColor,
-                      setSelectedPicker
-                    )}
-                    {SketchPickermarkup(
-                      "backgroundColor",
-                      "Background",
-                      backgroundColor,
-                      setBackgroundcolor,
-                      setSelectedPicker
-                    )}
-                  </FormLayout.Group>
-                </BlockStack>
-                <Divider />
-                <BlockStack gap={200}>
-                  <Text variant=" headingSm" fontWeight="semibold">
-                    Button
-                  </Text>
-                  <FormLayout.Group condensed>
-                    {SketchPickermarkup(
-                      "buttonTextColor",
-                      "Text",
-                      buttonTextColor,
-                      setButtonTextcolor,
-                      setSelectedPicker
-                    )}
-                    {SketchPickermarkup(
-                      "buttonBackgroundColor",
-                      "Background",
-                      buttonBackgroundColor,
-                      setButtonBackgroundcolor,
-                      setSelectedPicker
-                    )}
-                  </FormLayout.Group>
-
-                  <TextField
-                    label="Radius (in px)"
-                    type="number"
-                    min={0}
-                    value={notificationSettingsData?.css?.btn_radius}
-                    onChange={(value) =>
-                      setNotificationSettingsData((prev) => ({
-                        ...prev,
-                        css: { ...prev.css, btn_radius: value },
-                      }))
-                    }
-                    requiredIndicator={true}
-                  />
-                </BlockStack>
-              </FormLayout>
-            </Card>
-          </Layout.AnnotatedSection>
-          <Layout.AnnotatedSection
-            title="Manage Email Templates"
-            description="Control the look and behavior of your email templates with tools to edit, test, and toggle them on or off as needed."
-          >
-            <Card padding={0}>
-              <ResourceList
-                resourceName={{ singular: "template", plural: "templates" }}
-                items={Object.entries(notificationSettingsData).filter(
-                  ([key, item]) =>
-                    item?.hasOwnProperty("is_enable") &&
-                    item?.hasOwnProperty("subject") &&
-                    item?.hasOwnProperty("message")
-                )}
-                renderItem={([key, item]) => {
-                  const { name, is_enable, subject, message } = item;
-                  return (
-                    <ResourceItem
-                      accessibilityLabel={`View details for ${key}`}
+        <BlockStack gap={300}>
+          {data?.plan_details?.name === "Free" && (
+            <Banner
+              title="Premium Features Unlocked"
+              action={{
+                content: (
+                  <InlineStack gap={200}>
+                    {" "}
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
                     >
-                      <div
-                        className="Polaris-InlineStack"
-                        style={{
-                          "--pc-inline-stack-align": "space-between",
-                          "--pc-inline-stack-wrap": "wrap",
-                          "--pc-inline-stack-flex-direction-xs": "row",
-                          alignItems: "center",
-                        }}
+                      <path
+                        d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                        fill="#FFD700"
+                        stroke="#FFD700"
+                        strokeWidth="2"
+                      />
+                    </svg>{" "}
+                    Upgrade plan
+                  </InlineStack>
+                ),
+                url: `/plans${window.location.search}`,
+              }}
+              status="info"
+            >
+              Unlock these features by upgrading your Plan!
+            </Banner>
+          )}
+          <Layout>
+            <Layout.AnnotatedSection
+              title="Email Verification"
+              description="Authenticating your sender email helps ensure reliable delivery of your email notifications"
+            >
+              <Card padding={data?.plan_details?.name === "Free" ? 400 : 400}>
+                <div
+                  class="Polaris-Box"
+                  style={{
+                    ...(data?.plan_details?.name === "Free" && {
+                      filter: "blur(2px)",
+                      opacity: 0.9,
+                    }),
+                  }}
+                >
+                  <FormLayout>
+                    <Banner>
+                      As per the new security modifications, we need to verify
+                      your identity before you can start sending notifications
+                      using your email address. Please click the verify button
+                      to verify your email.
+                    </Banner>
+                    {notificationSettingsData?.verified_status == "2" && (
+                      <Banner
+                        title="Check your Email for verification"
+                        status="info"
+                      ></Banner>
+                    )}
+
+                    <TextField
+                      label="Verified Sender Email"
+                      value={fromEmail}
+                      type="email"
+                      autoComplete="off"
+                      disabled={
+                        notificationSettingsData?.verified_status === "2" ||
+                        data?.plan_details?.name === "Free"
+                      }
+                      helpText={
+                        notificationSettingsData?.verified_status === "1" &&
+                        notificationSettingsData?.verify_email === fromEmail &&
+                        "This Email is already verified"
+                      }
+                      error={
+                        fromEmail === undefined
+                          ? false
+                          : verifyEmailErrorMessage
+                      }
+                      onChange={(value) => {
+                        setFromEmail(value);
+                        if (value.trim()) {
+                          setVerifyEmailErrorMessage(false);
+                        }
+                      }}
+                      connectedRight={
+                        fromEmail !== "noreply@shopiapps.in" &&
+                        !(
+                          notificationSettingsData?.verified_status == "1" &&
+                          notificationSettingsData?.verify_email === fromEmail
+                        ) && (
+                          <InlineStack align="end">
+                            <Button
+                              variant="plain"
+                              loading={verifyLoader}
+                              disabled={
+                                notificationSettingsData?.verified_status ===
+                                  "2" || data?.plan_details?.name === "Free"
+                              }
+                              onClick={() => handleVerify()}
+                            >
+                              Verify
+                            </Button>
+                          </InlineStack>
+                        )
+                      }
+                    />
+                  </FormLayout>
+                </div>
+              </Card>
+            </Layout.AnnotatedSection>
+            <Layout.AnnotatedSection
+              title="Customize Your Email Logo"
+              description="Customize how your logo appears in emails—adjust size, position, and visibility"
+            >
+              <Card padding={data?.plan_details?.name === "Free" ? 400 : 400}>
+                <div
+                  class="Polaris-Box"
+                  style={{
+                    ...(data?.plan_details?.name === "Free" && {
+                      filter: "blur(2px)",
+                      opacity: 0.9,
+                    }),
+                  }}
+                >
+                  <BlockStack gap={300}>
+                    <Checkbox
+                      label="Enable Email Logo"
+                      checked={isLogo}
+                      onChange={handleLogoCheckbox}
+                      disabled={data?.plan_details?.name === "Free"}
+                    />
+                    <Grid>
+                      <Grid.Cell
+                        columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}
                       >
-                        <InlineStack gap={200}>
-                          <Text variant="bodyMd" as="h3">
-                            {name}
-                          </Text>
-                          <Badge
-                            tone={is_enable == "1" ? "success" : "attention"}
-                          >
-                            {is_enable == "1" ? "Active" : "Inactive"}
-                          </Badge>
-                        </InlineStack>
-                        <InlineStack gap={300} align="end">
-                          <Button
-                            tone={is_enable == "1" ? "critical" : "success"}
-                            variant="plain"
-                            onClick={() =>
+                        <BlockStack gap={100}>
+                          <div className="email-logo-drop-zone-container">
+                            <DropZone
+                              onDrop={handleDropZoneDrop}
+                              allowMultiple={false}
+                              disabled={data?.plan_details?.name === "Free"}
+                              type="image"
+                            >
+                              {uploadedFiles}
+                              {fileUpload}
+                            </DropZone>
+                          </div>
+                          {logoError !== false && (
+                            <Text tone="critical">{logoError}</Text>
+                          )}
+                        </BlockStack>
+                      </Grid.Cell>
+                      <Grid.Cell
+                        columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}
+                      >
+                        <FormLayout>
+                          <TextField
+                            label="Width (in %)"
+                            type="number"
+                            autoComplete="off"
+                            value={notificationSettingsData?.css?.image_width}
+                            onChange={(value) =>
                               setNotificationSettingsData((prev) => ({
                                 ...prev,
-                                [key]: {
-                                  ...prev[key],
-                                  is_enable: is_enable == "1" ? "0" : "1",
-                                },
+                                css: { ...prev.css, image_width: value },
                               }))
                             }
-                          >
-                            {is_enable == "1" ? "Disable" : "Enable"}
-                          </Button>
-                          <Button
-                            variant="plain"
-                            onClick={() => {
-                              localStorage.setItem("emailTemplateType", key);
-                              navigate(
-                                `/settings/emailSettings/edit${window.location.search}`,
-                                {
-                                  state: {
-                                    templateData: notificationSettingsData,
-                                    type: key,
-                                  },
-                                }
-                              );
-                            }}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="plain"
-                            onClick={() => {
-                              setEmailType(key);
-                              setTestModal(true);
-                            }}
-                          >
-                            Test Email
-                          </Button>
-                        </InlineStack>
-                      </div>
-                    </ResourceItem>
-                  );
-                }}
-              />
-            </Card>
-          </Layout.AnnotatedSection>
-          <Modal
-            title={`Test ${capitalizeFirstLetter(
-              notificationSettingsData?.[emailType]?.name
-            )}`}
-            open={testModal}
-            onClose={() => setTestModal(false)}
-            primaryAction={{
-              content: "Send Test Email",
-              loading: testLoading,
-              onAction: () => sendTestEmail(),
-            }}
-            secondaryActions={[
-              {
-                content: "Cancel",
-                onAction: () => setTestModal(false),
-              },
-            ]}
-          >
-            <Modal.Section>
-              <BlockStack>
-                <TextField
-                  label="Email"
-                  requiredIndicator={true}
-                  value={testEmail}
-                  onChange={(value) => {
-                    setTestEmailError(false);
-                    setTestEmail(value);
+                            min={0}
+                            max={100}
+                            disabled={data?.plan_details?.name === "Free"}
+                          />
+                          <Select
+                            label="Alignment"
+                            options={[
+                              {
+                                label: "Center",
+                                value: "center",
+                              },
+                              {
+                                label: "Left",
+                                value: "left",
+                              },
+                              {
+                                label: "Right",
+                                value: "right",
+                              },
+                            ]}
+                            value={notificationSettingsData?.css?.image_align}
+                            onChange={(value) =>
+                              setNotificationSettingsData((prev) => ({
+                                ...prev,
+                                css: { ...prev.css, image_align: value },
+                              }))
+                            }
+                            min={0}
+                            disabled={data?.plan_details?.name === "Free"}
+                          />
+                        </FormLayout>
+                      </Grid.Cell>
+                    </Grid>
+                    {!isLogo && (
+                      <>
+                        <Bleed marginInline={400}>
+                          <Divider />
+                        </Bleed>
+                        <BlockStack gap={300}>
+                          <Banner>
+                            Customize the appearance of your email template by
+                            adding your shop logo. If the logo is not selected,
+                            your display name will be displayed instead.
+                          </Banner>
+                          <TextField
+                            label="Display Name"
+                            value={notificationSettingsData.logo_title}
+                            onChange={(value) =>
+                              setNotificationSettingsData((prev) => ({
+                                ...prev,
+                                logo_title: value,
+                              }))
+                            }
+                            disabled={data?.plan_details?.name === "Free"}
+                          />
+                        </BlockStack>
+                      </>
+                    )}
+                  </BlockStack>
+                </div>
+              </Card>
+            </Layout.AnnotatedSection>
+            <Layout.AnnotatedSection
+              title="Template Appearance"
+              description="Modify color schemes and border radius to align your emails with your store’s visual style."
+            >
+                  <Card padding={data?.plan_details?.name === "Free" ? 400 : 400}>
+                <div
+                  class="Polaris-Box"
+                  style={{
+                    ...(data?.plan_details?.name === "Free" && {
+                      filter: "blur(2px)",
+                      opacity: 0.9,
+                    }),
                   }}
-                  error={testEmailError}
-                />
-              </BlockStack>
-            </Modal.Section>
-          </Modal>
-          <Layout.Section></Layout.Section>
-        </Layout>
+                >
+                  <FormLayout>
+                    <BlockStack gap={200}>
+                      <Text variant=" headingSm" fontWeight="semibold">
+                        Email
+                      </Text>
+                      <FormLayout.Group condensed>
+                        {SketchPickermarkup(
+                          "textColor",
+                          "Text",
+                          textColor,
+                          setTextColor,
+                          setSelectedPicker
+                        )}
+                        {SketchPickermarkup(
+                          "backgroundColor",
+                          "Background",
+                          backgroundColor,
+                          setBackgroundcolor,
+                          setSelectedPicker
+                        )}
+                      </FormLayout.Group>
+                    </BlockStack>
+                    <Divider />
+                    <BlockStack gap={200}>
+                      <Text variant=" headingSm" fontWeight="semibold">
+                        Button
+                      </Text>
+                      <FormLayout.Group condensed>
+                        {SketchPickermarkup(
+                          "buttonTextColor",
+                          "Text",
+                          buttonTextColor,
+                          setButtonTextcolor,
+                          setSelectedPicker
+                        )}
+                        {SketchPickermarkup(
+                          "buttonBackgroundColor",
+                          "Background",
+                          buttonBackgroundColor,
+                          setButtonBackgroundcolor,
+                          setSelectedPicker
+                        )}
+                      </FormLayout.Group>
+
+                      <TextField
+                        label="Radius (in px)"
+                        type="number"
+                        min={0}
+                        value={notificationSettingsData?.css?.btn_radius}
+                        onChange={(value) =>
+                          setNotificationSettingsData((prev) => ({
+                            ...prev,
+                            css: { ...prev.css, btn_radius: value },
+                          }))
+                        }
+                        requiredIndicator={true}
+                        disabled={data?.plan_details?.name === "Free"}
+                      />
+                    </BlockStack>
+                  </FormLayout>
+                </div>
+              </Card>
+            </Layout.AnnotatedSection>
+            <Layout.AnnotatedSection
+              title="Manage Email Templates"
+              description="Control the look and behavior of your email templates with tools to edit, test, and toggle them on or off as needed."
+            >
+              <Card padding={0}>
+                <div
+                  class="Polaris-Box"
+                  style={{
+                    ...(data?.plan_details?.name === "Free" && {
+                      filter: "blur(2px)",
+                      opacity: 0.9,
+                    }),
+                  }}
+                >
+                  <ResourceList
+                    resourceName={{ singular: "template", plural: "templates" }}
+                    items={Object.entries(notificationSettingsData).filter(
+                      ([key, item]) =>
+                        item?.hasOwnProperty("is_enable") &&
+                        item?.hasOwnProperty("subject") &&
+                        item?.hasOwnProperty("message")
+                    )}
+                    renderItem={([key, item]) => {
+                      const { name, is_enable, subject, message } = item;
+                      return (
+                        <ResourceItem
+                          accessibilityLabel={`View details for ${key}`}
+                          disabled={data?.plan_details?.name === "Free"}
+                        >
+                          <div
+                            className="Polaris-InlineStack"
+                            style={{
+                              "--pc-inline-stack-align": "space-between",
+                              "--pc-inline-stack-wrap": "wrap",
+                              "--pc-inline-stack-flex-direction-xs": "row",
+                              alignItems: "center",
+                            }}
+                          >
+                            <InlineStack gap={200}>
+                              <Text variant="bodyMd" as="h3">
+                                {name}
+                              </Text>
+                              <Badge
+                                tone={
+                                  is_enable == "1" ? "success" : "attention"
+                                }
+                              >
+                                {is_enable == "1" ? "Active" : "Inactive"}
+                              </Badge>
+                            </InlineStack>
+                            <InlineStack gap={300} align="end">
+                              <Button
+                                tone={is_enable == "1" ? "critical" : "success"}
+                                variant="plain"
+                                onClick={() =>
+                                  setNotificationSettingsData((prev) => ({
+                                    ...prev,
+                                    [key]: {
+                                      ...prev[key],
+                                      is_enable: is_enable == "1" ? "0" : "1",
+                                    },
+                                  }))
+                                }
+                                disabled={data?.plan_details?.name === "Free"}
+                              >
+                                {is_enable == "1" ? "Disable" : "Enable"}
+                              </Button>
+                              <Button
+                                variant="plain"
+                                disabled={data?.plan_details?.name === "Free"}
+                                onClick={() => {
+                                  localStorage.setItem(
+                                    "emailTemplateType",
+                                    key
+                                  );
+                                  navigate(
+                                    `/settings/emailSettings/edit${window.location.search}`,
+                                    {
+                                      state: {
+                                        templateData: notificationSettingsData,
+                                        type: key,
+                                      },
+                                    }
+                                  );
+                                }}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="plain"
+                                onClick={() => {
+                                  setEmailType(key);
+                                  setTestModal(true);
+                                }}
+                                disabled={data?.plan_details?.name === "Free"}
+                              >
+                                Test Email
+                              </Button>
+                            </InlineStack>
+                          </div>
+                        </ResourceItem>
+                      );
+                    }}
+                  />
+                </div>
+              </Card>
+            </Layout.AnnotatedSection>
+            <Modal
+              title={`Test ${capitalizeFirstLetter(
+                notificationSettingsData?.[emailType]?.name
+              )}`}
+              open={testModal}
+              onClose={() => setTestModal(false)}
+              primaryAction={{
+                content: "Send Test Email",
+                loading: testLoading,
+                onAction: () => sendTestEmail(),
+              }}
+              secondaryActions={[
+                {
+                  content: "Cancel",
+                  onAction: () => setTestModal(false),
+                },
+              ]}
+            >
+              <Modal.Section>
+                <BlockStack>
+                  <TextField
+                    label="Email"
+                    requiredIndicator={true}
+                    value={testEmail}
+                    onChange={(value) => {
+                      setTestEmailError(false);
+                      setTestEmail(value);
+                    }}
+                    error={testEmailError}
+                  />
+                </BlockStack>
+              </Modal.Section>
+            </Modal>
+            <Layout.Section></Layout.Section>
+          </Layout>
+        </BlockStack>
       </Page>
     </div>
   );

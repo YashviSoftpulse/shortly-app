@@ -46,6 +46,7 @@ function MyLinks({
   const [isLoading, setIsloading] = useState(false);
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(LinksData);
+  const [isExporting, setIsExporting] = useState(false);
   const limit = 10;
   const [Timer, setTimer] = useState(null);
   const [isExportModal, setIsExportModal] = useState(false);
@@ -77,7 +78,7 @@ function MyLinks({
   const getRedirectLinksData = async (data) => {
     setPageNumber(data?.get("page"));
     setIsloading(true);
-    const response = await fetchData(getApiURL("/redirect_list_V2"), data);
+    const response = await fetchData(getApiURL("redirect_list_V2"), data);
     setIsloading(false);
     if (response.status === true) {
       const temp = response?.data.map((val, index) => {
@@ -221,14 +222,18 @@ function MyLinks({
     //   });
     const data = new FormData();
     data.append("type", "export");
-    const response = await fetchData(getApiURL("/register_work"), data);
+    setIsExporting(true);
+    const response = await fetchData(getApiURL("register_work"), data);
     if (response?.status === true) {
       setIsExportModal(false);
+      setIsExporting(false);
       shopify.toast.show(
         "Success! We’ll send you an email update shortly. Stay tuned!",
         { duration: 3000 }
       );
     } else {
+      setIsExporting(false);
+      setIsExportModal(false);
       shopify.toast.show(response?.message, { isError: true, duration: 3000 });
     }
   };
@@ -428,6 +433,7 @@ function MyLinks({
         buttonAction={() => exportLinks()}
         destructive={false}
         show={!data?.plan_details?.features?.export}
+        loading={isExporting}
       />
     </LegacyCard>
   );

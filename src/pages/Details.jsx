@@ -69,9 +69,9 @@ function Details() {
   const [generateLoader, setGenerateLoader] = useState(false);
   const [isDeleteModal, setIsDeleteModal] = useState(false);
   const [productAnalytics, setProductAnalytics] = useState([]);
-
-  const [influencerProductAnalytics, setInfluencerProductAnalytics] = useState([]);
-
+  const [influencerProductAnalytics, setInfluencerProductAnalytics] = useState(
+    []
+  );
   const [copiedItems, setCopiedItems] = useState({});
   const location = useLocation();
   const navigate = useNavigate();
@@ -88,7 +88,8 @@ function Details() {
   var previousData = storedData?.previousData;
   var APIPath = storedData?.APIPath;
   var influencerID = storedData?.influencerID;
-
+  var storeCurrency = storedData?.storeCurrency;
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isRegenerate, setIsRegenerate] = useState(storedData?.regenerate);
   const [pageNumber, setPageNumber] = useState(
     parseInt(storedData?.pageNumber)
@@ -100,7 +101,10 @@ function Details() {
   const SHOP = urlParams.get("shop");
   const qrCodeRef = useRef(null);
 
-  const checkAPIForAnalytics = APIPath === "influencer-analytics" ? influencerProductAnalytics : productAnalytics;
+  const checkAPIForAnalytics =
+    APIPath === "influencer-analytics"
+      ? influencerProductAnalytics
+      : productAnalytics;
 
   const getLast30DaysRange = () => {
     const end = new Date();
@@ -110,26 +114,28 @@ function Details() {
   };
   const [selectedDates, setSelectedDates] = useState(getLast30DaysRange());
 
-
   const handleCopy = (text, itemId) => {
     navigator.clipboard
       .writeText(text)
       .then(() => {
         // Show checkmark icon immediately for better UX
-        setCopiedItems(prev => ({ ...prev, [itemId]: true }));
+        setCopiedItems((prev) => ({ ...prev, [itemId]: true }));
 
         // Show toast notification
         shopify.toast.show("Copied to Clipboard", { duration: 3000 });
 
         // Return to clipboard icon after 1.5 seconds (faster response)
         setTimeout(() => {
-          setCopiedItems(prev => ({ ...prev, [itemId]: false }));
+          setCopiedItems((prev) => ({ ...prev, [itemId]: false }));
         }, 1500);
       })
       .catch((err) => {
         console.error("Failed to copy: ", err);
         // Show error toast if copy fails
-        shopify.toast.show("Failed to copy to clipboard", { duration: 3000, isError: true });
+        shopify.toast.show("Failed to copy to clipboard", {
+          duration: 3000,
+          isError: true,
+        });
       });
   };
 
@@ -170,7 +176,7 @@ function Details() {
         setWithShopURL(removeShopDomain(response?.data?.[index]?.short_link));
         setCustomURL(
           removeShopDomain(response?.data?.[index]?.custom_url) ||
-          generateRandomString(12)
+            generateRandomString(12)
         );
       }
     }
@@ -193,8 +199,17 @@ function Details() {
 
   /* GENERATE URL HANDLER START */
   const handleGenerate = async () => {
-    if (showErrorMessage(customURL, "Short URL")) return false;
-    if (showErrorMessage(withShopURL, "Custom URL")) return false;
+    const shortUrlError = showErrorMessage(customURL, "Short URL");
+    if (shortUrlError) {
+      shopify.toast.show(shortUrlError, { duration: 3000, isError: true });
+      return false;
+    }
+
+    const customUrlError = showErrorMessage(withShopURL, "Custom URL");
+    if (customUrlError) {
+      shopify.toast.show(customUrlError, { duration: 3000, isError: true });
+      return false;
+    }
     setGenerateLoader(true);
     if (isRegenerate === true) {
       const deleteData = new FormData();
@@ -206,7 +221,7 @@ function Details() {
         )
       );
       const deleteResponse = await fetchData(
-        getApiURL("/delete_url_redirect"),
+        getApiURL("delete_url_redirect"),
         deleteData
       );
       if (deleteResponse?.status === true) setIsRegenerate(false);
@@ -247,7 +262,7 @@ function Details() {
     )
       formdata.append("qr_code", `qr=${generateRandomString(20)}`);
     const response = await fetchData(
-      getApiURL("/create_url_redirect"),
+      getApiURL("create_url_redirect"),
       formdata
     );
     setGenerateLoader(false);
@@ -269,7 +284,13 @@ function Details() {
       })
         .then((canvas) => {
           canvas.toBlob((blob) => {
-            saveAs(blob, `${responseData?.[productId]?.handle}-qrcode.jpg`);
+            saveAs(
+              blob,
+              `${(responseData?.[productId]?.title || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9\s]/g, "")
+                .replace(/\s+/g, "-")}-qrcode.jpg`
+            );
           }, "image/jpeg");
         })
         .catch((err) => {
@@ -292,8 +313,11 @@ function Details() {
     }
     return result;
   };
+
   useEffect(() => {
-    reloardProductList(isRegenerate, pageNumber);
+    if (APIPath !== "influencer-analytics") {
+      reloardProductList(isRegenerate, pageNumber);
+    }
     if (responseData?.[productId]?.title) {
       setDataTitle(responseData?.[productId]?.title);
     }
@@ -313,6 +337,19 @@ function Details() {
   const changeFormat = (val) => {
     return moment(val).format("yyyy-MM-DD");
   };
+
+  useEffect(() => {
+    if (selectedTab !== undefined) {
+      sessionStorage?.setItem("selectedTab", selectedTab);
+    }
+    console.log("1", changeFormat(selectedDates.start));
+
+    if (APIPath === "influencer-analytics") {
+      influncerAnaliytics();
+    } else {
+      analiytics();
+    }
+  }, [selectedTab, selectedDates]);
 
   const analiytics = async () => {
     setIsLoading(true);
@@ -350,15 +387,6 @@ function Details() {
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    if (selectedTab !== undefined) {
-      sessionStorage?.setItem("selectedTab", selectedTab);
-    }
-    analiytics();
-    influncerAnaliytics();
-  }, [selectedTab]);
-
-
   const icons = {
     Chrome: ChromeIcon,
     Firefox: FirefoxIcon,
@@ -373,7 +401,7 @@ function Details() {
 
   const initClickAnalyticsChart = () => {
     const { x_axis = [], y_axis = [] } = checkAPIForAnalytics?.chart || {};
-    const data = x_axis.map((date, index) => {
+    const clicks = x_axis.map((date, index) => {
       const utcDate = moment.utc(date);
       const localDate = utcDate.local().format("YYYY-MM-DD HH:mm:ss");
       return {
@@ -382,7 +410,9 @@ function Details() {
       };
     });
 
-    return data.length === 0 ? (
+  
+console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?.plan_details?.features?.clicks_analytics_product_page)
+    return clicks.length === 0 ? (
       <div className="fade-in-slide-up">
         <BlockStack inlineAlign="center">
           <Thumbnail source={Nodata} alt="No Data Found" size="large" />
@@ -395,7 +425,9 @@ function Details() {
       <LineChart
         data={[
           {
-            data,
+            data: data?.plan_details?.features?.click_analytics_product_page
+              ? clicks
+              : [],
             name: "Clicks",
           },
         ]}
@@ -406,12 +438,12 @@ function Details() {
 
   const PlatformsAnalyticsChart = () => {
     const platforms = checkAPIForAnalytics?.platforms || {};
-    const data = Object.entries(platforms).map(([name, value]) => ({
+    const platform = Object.entries(platforms).map(([name, value]) => ({
       key: name,
       value: value,
     }));
 
-    return data.length === 0 ? (
+    return platform.length === 0 ? (
       <div className="fade-in-slide-up">
         <BlockStack inlineAlign="center">
           <Thumbnail source={Nodata} alt="No Data Found" size="large" />
@@ -424,8 +456,41 @@ function Details() {
       <BarChart
         data={[
           {
-            data,
+            data: data?.plan_details?.features?.platform_analytics_product_page
+              ? platform
+              : [{}],
             name: "Platform",
+          },
+        ]}
+        theme="Light"
+      />
+    );
+  };
+
+  const initDeviceUsageChart = () => {
+    const platforms = checkAPIForAnalytics?.devices || {};
+    const devices = Object.entries(platforms).map(([name, value]) => ({
+      key: name,
+      value: value,
+    }));
+
+    return devices.length === 0 ? (
+      <div className="fade-in-slide-up">
+        <BlockStack inlineAlign="center">
+          <Thumbnail source={Nodata} alt="No Data Found" size="large" />
+          <Text variant="bodyXs" tone="subdued" alignment="center">
+            There was no data found for this date range.
+          </Text>
+        </BlockStack>
+      </div>
+    ) : (
+      <SimpleBarChart
+        data={[
+          {
+            data: data?.plan_details?.features?.device_analytics_product_page
+              ? devices
+              : [{}],
+            name: "Device",
           },
         ]}
         theme="Light"
@@ -457,35 +522,6 @@ function Details() {
       </div>
     ) : (
       <DonutChart legendPosition="left" data={categories} theme="Light" />
-    );
-  };
-
-  const initDeviceUsageChart = () => {
-    const platforms = checkAPIForAnalytics?.devices || {};
-    const data = Object.entries(platforms).map(([name, value]) => ({
-      key: name,
-      value: value,
-    }));
-
-    return data.length === 0 ? (
-      <div className="fade-in-slide-up">
-        <BlockStack inlineAlign="center">
-          <Thumbnail source={Nodata} alt="No Data Found" size="large" />
-          <Text variant="bodyXs" tone="subdued" alignment="center">
-            There was no data found for this date range.
-          </Text>
-        </BlockStack>
-      </div>
-    ) : (
-      <SimpleBarChart
-        data={[
-          {
-            data,
-            name: "Device",
-          },
-        ]}
-        theme="Light"
-      />
     );
   };
 
@@ -587,31 +623,38 @@ function Details() {
       domainPrefix = `https://${SHOP}/`;
     }
 
-    return `${domainPrefix}${baseURL}?${params.toString()}`;
+    const queryString = params.toString();
+    if (queryString) {
+      const separator = baseURL.includes("?") ? "&" : "?";
+      return `${domainPrefix}${baseURL}${separator}${queryString}`;
+    } else {
+      return `${domainPrefix}${baseURL}`;
+    }
   };
-
 
   let parsedUtmData = {};
   try {
-    parsedUtmData = JSON.parse(utmData || '{}');
+    parsedUtmData = JSON.parse(utmData || "{}");
   } catch (e) {
-    console.error('Invalid JSON in utm_datas');
+    console.error("Invalid JSON in utm_datas");
   }
 
-  const validUtmEntries = Object.entries(parsedUtmData || {}).filter(([key, value]) => value?.trim() !== '');
+  const validUtmEntries = Object.entries(parsedUtmData || {}).filter(
+    ([key, value]) => value?.trim() !== ""
+  );
 
   const CountriesChart = () => {
-    const categories = Object.entries(checkAPIForAnalytics?.countries || {}).map(
-      ([name, value]) => ({
-        name: name,
-        data: [
-          {
-            key: name,
-            value: value,
-          },
-        ],
-      })
-    );
+    const categories = Object.entries(
+      checkAPIForAnalytics?.countries || {}
+    ).map(([name, value]) => ({
+      name: name,
+      data: [
+        {
+          key: name,
+          value: value,
+        },
+      ],
+    }));
 
     return categories.length === 0 ? (
       <div className="fade-in-slide-up">
@@ -654,11 +697,17 @@ function Details() {
         showErrorMessage(withShopURL, "Custom URL") ||
         showErrorMessage(customURL, "Short URL")
       )
-        return { height: APIPath === 'influencer-analytics' && validUtmEntries.length === 0 ?  "8.8rem" : "13.6rem" };
+        return {
+          height:
+            APIPath === "influencer-analytics" && validUtmEntries.length === 0
+              ? "8.8rem"
+              : "13.6rem",
+        };
     }
   };
 
   const deleteUrl = async () => {
+    setIsDeleting(true);
     const data = new FormData();
     data.append(
       "shopify_url",
@@ -667,12 +716,14 @@ function Details() {
         responseData[productId]?.shopify_url
       )
     );
-    const response = await fetchData(getApiURL("/delete_url_redirect"), data);
+    const response = await fetchData(getApiURL("delete_url_redirect"), data);
     setIsDeleteModal(false);
     if (response?.status === true) {
+      setIsDeleting(false);
       shopify.toast.show(response?.message, { duration: 3000 });
       navigate({ pathname: "/listing", search: window.location.search });
     } else {
+      setIsDeleting(false);
       shopify.toast.show(response?.message, { duration: 3000, isError: true });
     }
   };
@@ -708,9 +759,9 @@ function Details() {
       }}
       primaryAction={
         !removeShopDomain(responseData[productId]?.short_link) ||
-          !removeShopDomain(responseData[productId]?.custom_url) ? (
+        !removeShopDomain(responseData[productId]?.custom_url) ? (
           !removeShopDomain(responseData[productId]?.short_link) &&
-            !removeShopDomain(responseData[productId]?.custom_url) ? (
+          !removeShopDomain(responseData[productId]?.custom_url) ? (
             <Button
               variant="primary"
               loading={generateLoader}
@@ -719,13 +770,15 @@ function Details() {
               Generate
             </Button>
           ) : (
-            <Button
-              variant="primary"
-              loading={generateLoader}
-              onClick={() => handleGenerate()}
-            >
-              Save
-            </Button>
+            APIPath !== "influencer-analytics" && (
+              <Button
+                variant="primary"
+                loading={generateLoader}
+                onClick={() => handleGenerate()}
+              >
+                Save
+              </Button>
+            )
           )
         ) : (
           <Button
@@ -758,7 +811,7 @@ function Details() {
                     <Button
                       size="slim"
                       onClick={() =>
-                        navigate(`/ plans${window.location.search} `)
+                        navigate(`/plans${window.location.search} `)
                       }
                       icon={
                         <svg
@@ -793,7 +846,6 @@ function Details() {
                   }),
                 }}
               >
-
                 <InlineStack align="space-between" gap={200}>
                   <InlineStack gap={200}>
                     <Icon source={CursorFilledIcon} size="large" tone="info" />
@@ -803,7 +855,10 @@ function Details() {
                   </InlineStack>
                   {data?.plan_details?.features?.total_clicks_product_page && (
                     <Text variant="headingLg">
-                      {formatNumber(checkAPIForAnalytics?.product_analytics?.total?.total_clicks || 0)}
+                      {formatNumber(
+                        checkAPIForAnalytics?.product_analytics?.total
+                          ?.total_clicks || 0
+                      )}
                     </Text>
                   )}
                 </InlineStack>
@@ -811,91 +866,13 @@ function Details() {
                 <Divider />
                 {!data?.plan_details?.features
                   ?.detailed_clicks_product_page && (
-                    <div class="premium-plan">
-                      <p>
-                        Get more insight with
-                        <Button
-                          size="slim"
-                          onClick={() =>
-                            navigate(`/ plans${window.location.search} `)
-                          }
-                          icon={
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
-                                fill="#FFD700"
-                                stroke="#FFD700"
-                                strokeWidth="2"
-                              />
-                            </svg>
-                          }
-                        >
-                          Upgrade Plan
-                        </Button>
-                      </p>
-                    </div>
-                  )}
-
-                <div
-                  className="Polaris-BlockStack"
-                  style={{
-                    "--pc-block-stack-order": "column",
-                    "--pc-block-stack-gap-xs": "var(--p-space-300)",
-                    ...(!data?.plan_details?.features
-                      ?.detailed_clicks_product_page && {
-                      filter: "blur(3px)",
-                      opacity: 0.2,
-                    }),
-                  }}
-                >
-                  <InlineStack align="space-between">
-                    <Text>Short URL</Text>
-                    <Text>
-                      {formatNumber(
-                        checkAPIForAnalytics?.product_analytics?.short_url_anlytics
-                          ?.total_clicks || 0
-                      )}
-                    </Text>
-                  </InlineStack>
-
-                  {APIPath !== "influencer-analytics" && (
-                    <InlineStack align="space-between">
-                      <Text>Custom URL</Text>
-                      <Text>
-                        {formatNumber(
-                          productAnalytics?.product_analytics?.custom_url_anlytics
-                            ?.total_clicks || 0
-                        )}
-                      </Text>
-                    </InlineStack>
-                  )}
-                  <InlineStack align="space-between">
-                    <Text>QR</Text>
-                    <Text>
-                      {formatNumber(
-                        checkAPIForAnalytics?.product_analytics?.qr_code_anlytics
-                          ?.total_clicks || 0
-                      )}
-                    </Text>
-                  </InlineStack>
-                </div>
-              </div>
-            </Card>
-            <Card>
-              {!data?.plan_details?.features
-                ?.total_add_to_cart_product_page && (
                   <div class="premium-plan">
                     <p>
-                      View total add to cart with
+                      Get more insight with
                       <Button
                         size="slim"
                         onClick={() =>
-                          navigate(`/ plans${window.location.search} `)
+                          navigate(`/plans${window.location.search} `)
                         }
                         icon={
                           <svg
@@ -918,6 +895,84 @@ function Details() {
                     </p>
                   </div>
                 )}
+
+                <div
+                  className="Polaris-BlockStack"
+                  style={{
+                    "--pc-block-stack-order": "column",
+                    "--pc-block-stack-gap-xs": "var(--p-space-300)",
+                    ...(!data?.plan_details?.features
+                      ?.detailed_clicks_product_page && {
+                      filter: "blur(3px)",
+                      opacity: 0.2,
+                    }),
+                  }}
+                >
+                  <InlineStack align="space-between">
+                    <Text>Short URL</Text>
+                    <Text>
+                      {formatNumber(
+                        checkAPIForAnalytics?.product_analytics
+                          ?.short_url_anlytics?.total_clicks || 0
+                      )}
+                    </Text>
+                  </InlineStack>
+
+                  {APIPath !== "influencer-analytics" && (
+                    <InlineStack align="space-between">
+                      <Text>Custom URL</Text>
+                      <Text>
+                        {formatNumber(
+                          productAnalytics?.product_analytics
+                            ?.custom_url_anlytics?.total_clicks || 0
+                        )}
+                      </Text>
+                    </InlineStack>
+                  )}
+                  <InlineStack align="space-between">
+                    <Text>QR</Text>
+                    <Text>
+                      {formatNumber(
+                        checkAPIForAnalytics?.product_analytics
+                          ?.qr_code_anlytics?.total_clicks || 0
+                      )}
+                    </Text>
+                  </InlineStack>
+                </div>
+              </div>
+            </Card>
+            <Card>
+              {!data?.plan_details?.features
+                ?.total_add_to_cart_product_page && (
+                <div class="premium-plan">
+                  <p>
+                    View total add to cart with
+                    <Button
+                      size="slim"
+                      onClick={() =>
+                        navigate(`/plans${window.location.search} `)
+                      }
+                      icon={
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                            fill="#FFD700"
+                            stroke="#FFD700"
+                            strokeWidth="2"
+                          />
+                        </svg>
+                      }
+                    >
+                      Upgrade Plan
+                    </Button>
+                  </p>
+                </div>
+              )}
               <div
                 className="Polaris-BlockStack"
                 style={{
@@ -942,47 +997,47 @@ function Details() {
                     </Text>
                   </InlineStack>
                   {data?.plan_details?.features
-                    ?.detailed_add_to_cart_product_page && (
-                      <Text variant="headingLg">
-                        {formatNumber(
-                          checkAPIForAnalytics?.product_analytics?.total
-                            ?.total_add_to_cart || 0
-                        )}
-                      </Text>
-                    )}
+                    ?.total_add_to_cart_product_page && (
+                    <Text variant="headingLg">
+                      {formatNumber(
+                        checkAPIForAnalytics?.product_analytics?.total
+                          ?.total_add_to_cart || 0
+                      )}
+                    </Text>
+                  )}
                 </InlineStack>
                 <Divider />
                 {!data?.plan_details?.features
                   ?.detailed_add_to_cart_product_page && (
-                    <div class="premium-plan">
-                      <p>
-                        Get more insight with
-                        <Button
-                          size="slim"
-                          onClick={() =>
-                            navigate(`/ plans${window.location.search} `)
-                          }
-                          icon={
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
-                                fill="#FFD700"
-                                stroke="#FFD700"
-                                strokeWidth="2"
-                              />
-                            </svg>
-                          }
-                        >
-                          Upgrade Plan
-                        </Button>
-                      </p>
-                    </div>
-                  )}
+                  <div class="premium-plan">
+                    <p>
+                      Get more insight with
+                      <Button
+                        size="slim"
+                        onClick={() =>
+                          navigate(`/plans${window.location.search} `)
+                        }
+                        icon={
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                              fill="#FFD700"
+                              stroke="#FFD700"
+                              strokeWidth="2"
+                            />
+                          </svg>
+                        }
+                      >
+                        Upgrade Plan
+                      </Button>
+                    </p>
+                  </div>
+                )}
 
                 <div
                   className="Polaris-BlockStack"
@@ -1000,8 +1055,8 @@ function Details() {
                     <Text>Short URL</Text>
                     <Text>
                       {formatNumber(
-                        checkAPIForAnalytics?.product_analytics?.short_url_anlytics
-                          ?.total_add_to_cart || 0
+                        checkAPIForAnalytics?.product_analytics
+                          ?.short_url_anlytics?.total_add_to_cart || 0
                       )}
                     </Text>
                   </InlineStack>
@@ -1010,8 +1065,8 @@ function Details() {
                       <Text>Custom URL</Text>
                       <Text>
                         {formatNumber(
-                          productAnalytics?.product_analytics?.custom_url_anlytics
-                            ?.total_add_to_cart || 0
+                          productAnalytics?.product_analytics
+                            ?.custom_url_anlytics?.total_add_to_cart || 0
                         )}
                       </Text>
                     </InlineStack>
@@ -1020,8 +1075,8 @@ function Details() {
                     <Text>QR</Text>
                     <Text>
                       {formatNumber(
-                        checkAPIForAnalytics?.product_analytics?.qr_code_anlytics
-                          ?.total_add_to_cart || 0
+                        checkAPIForAnalytics?.product_analytics
+                          ?.qr_code_anlytics?.total_add_to_cart || 0
                       )}
                     </Text>
                   </InlineStack>
@@ -1036,7 +1091,7 @@ function Details() {
                     <Button
                       size="slim"
                       onClick={() =>
-                        navigate(`/ plans${window.location.search} `)
+                        navigate(`/plans${window.location.search} `)
                       }
                       icon={
                         <svg
@@ -1084,46 +1139,46 @@ function Details() {
                   </InlineStack>
                   {data?.plan_details?.features
                     ?.total_checkouts_product_page && (
-                      <Text variant="headingLg">
-                        {formatNumber(
-                          checkAPIForAnalytics?.product_analytics?.total
-                            ?.total_checkout || 0
-                        )}
-                      </Text>
-                    )}
+                    <Text variant="headingLg">
+                      {formatNumber(
+                        checkAPIForAnalytics?.product_analytics?.total
+                          ?.total_checkout || 0
+                      )}
+                    </Text>
+                  )}
                 </InlineStack>
                 <Divider />
                 {!data?.plan_details?.features
                   ?.detailed_checkouts_product_page && (
-                    <div class="premium-plan">
-                      <p>
-                        Get more insight with
-                        <Button
-                          size="slim"
-                          onClick={() =>
-                            navigate(`/ plans${window.location.search} `)
-                          }
-                          icon={
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
-                                fill="#FFD700"
-                                stroke="#FFD700"
-                                strokeWidth="2"
-                              />
-                            </svg>
-                          }
-                        >
-                          Upgrade Plan
-                        </Button>
-                      </p>
-                    </div>
-                  )}
+                  <div class="premium-plan">
+                    <p>
+                      Get more insight with
+                      <Button
+                        size="slim"
+                        onClick={() =>
+                          navigate(`/plans${window.location.search} `)
+                        }
+                        icon={
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                              fill="#FFD700"
+                              stroke="#FFD700"
+                              strokeWidth="2"
+                            />
+                          </svg>
+                        }
+                      >
+                        Upgrade Plan
+                      </Button>
+                    </p>
+                  </div>
+                )}
 
                 <div
                   className="Polaris-BlockStack"
@@ -1141,8 +1196,8 @@ function Details() {
                     <Text>Short URL</Text>
                     <Text>
                       {formatNumber(
-                        checkAPIForAnalytics?.product_analytics?.short_url_anlytics
-                          ?.total_checkout || 0
+                        checkAPIForAnalytics?.product_analytics
+                          ?.short_url_anlytics?.total_checkout || 0
                       )}
                     </Text>
                   </InlineStack>
@@ -1151,8 +1206,8 @@ function Details() {
                       <Text>Custom URL</Text>
                       <Text>
                         {formatNumber(
-                          productAnalytics?.product_analytics?.custom_url_anlytics
-                            ?.total_checkout || 0
+                          productAnalytics?.product_analytics
+                            ?.custom_url_anlytics?.total_checkout || 0
                         )}
                       </Text>
                     </InlineStack>
@@ -1161,8 +1216,8 @@ function Details() {
                     <Text>QR</Text>
                     <Text>
                       {formatNumber(
-                        checkAPIForAnalytics?.product_analytics?.qr_code_anlytics
-                          ?.total_checkout || 0
+                        checkAPIForAnalytics?.product_analytics
+                          ?.qr_code_anlytics?.total_checkout || 0
                       )}
                     </Text>
                   </InlineStack>
@@ -1177,7 +1232,7 @@ function Details() {
                     <Button
                       size="slim"
                       onClick={() =>
-                        navigate(`/ plans${window.location.search} `)
+                        navigate(`/plans${window.location.search} `)
                       }
                       icon={
                         <svg
@@ -1226,10 +1281,16 @@ function Details() {
 
                   {data?.plan_details?.features?.total_sales_product_page && (
                     <Text variant="headingLg">
-                      {formatNumber(
-                        checkAPIForAnalytics?.product_analytics?.total
-                          ?.total_sales || 0
-                      )}
+                      {storeCurrency === undefined
+                        ? formatNumber(
+                            checkAPIForAnalytics?.product_analytics?.total
+                              ?.total_sales || 0
+                          )
+                        : storeCurrency +
+                          formatNumber(
+                            checkAPIForAnalytics?.product_analytics?.total
+                              ?.total_sales || 0
+                          )}
                     </Text>
                   )}
                 </InlineStack>
@@ -1241,7 +1302,7 @@ function Details() {
                       <Button
                         size="slim"
                         onClick={() =>
-                          navigate(`/ plans${window.location.search} `)
+                          navigate(`/plans${window.location.search} `)
                         }
                         icon={
                           <svg
@@ -1279,30 +1340,48 @@ function Details() {
                   <InlineStack align="space-between">
                     <Text>Short URL</Text>
                     <Text>
-                      {formatNumber(
-                        checkAPIForAnalytics?.product_analytics?.short_url_anlytics
-                          ?.total_sales || 0
-                      )}
+                      {storeCurrency === undefined
+                        ? formatNumber(
+                            checkAPIForAnalytics?.product_analytics
+                              ?.short_url_anlytics?.total_sales || 0
+                          )
+                        : storeCurrency +
+                          formatNumber(
+                            checkAPIForAnalytics?.product_analytics
+                              ?.short_url_anlytics?.total_sales || 0
+                          )}
                     </Text>
                   </InlineStack>
                   {APIPath !== "influencer-analytics" && (
                     <InlineStack align="space-between">
                       <Text>Custom URL</Text>
                       <Text>
-                        {formatNumber(
-                          productAnalytics?.product_analytics?.custom_url_anlytics
-                            ?.total_sales || 0
-                        )}
+                        {storeCurrency === undefined
+                          ? formatNumber(
+                              productAnalytics?.product_analytics
+                                ?.custom_url_anlytics?.total_sales || 0
+                            )
+                          : storeCurrency +
+                            formatNumber(
+                              productAnalytics?.product_analytics
+                                ?.custom_url_anlytics?.total_sales || 0
+                            )}
                       </Text>
                     </InlineStack>
                   )}
                   <InlineStack align="space-between">
                     <Text>QR</Text>
                     <Text>
-                      {formatNumber(
-                        checkAPIForAnalytics?.product_analytics?.qr_code_anlytics
-                          ?.total_sales || 0
-                      )}
+                      {storeCurrency === undefined
+                        ? formatNumber(
+                            checkAPIForAnalytics?.product_analytics
+                              ?.qr_code_anlytics?.total_sales || 0
+                          )
+                        : storeCurrency +
+                          formatNumber(
+                            checkAPIForAnalytics?.product_analytics
+                              ?.qr_code_anlytics?.total_sales || 0
+                          )}
                     </Text>
                   </InlineStack>
                 </div>
@@ -1343,13 +1422,21 @@ function Details() {
                               removeShopDomain(
                                 responseData[productId]?.onlineStorePreviewUrl,
                                 responseData[productId]?.shopify_url
-                              ), "shopify"
+                              ),
+                              "shopify"
                             ),
-                            'shopify-url'
+                            "shopify-url"
                           )
                         }
                       >
-                        <Icon source={copiedItems['shopify-url'] ? CheckIcon : ClipboardIcon} tone="base" />
+                        <Icon
+                          source={
+                            copiedItems["shopify-url"]
+                              ? CheckIcon
+                              : ClipboardIcon
+                          }
+                          tone="base"
+                        />
                       </Button>
                     </Tooltip>
                   }
@@ -1364,8 +1451,7 @@ function Details() {
                         <Text as="h3">Custom URL</Text>
                         <Tooltip
                           content={`This custom URL, created with your store '${SHOP}', removes
-                     Shopify's predefined words like 'products,' 'pages,'
-                     'collection,`}
+                       Shopify's predefined words like 'products','pages' and 'collection'`}
                         >
                           <Icon tone="base" source={InfoIcon} />
                         </Tooltip>
@@ -1437,14 +1523,24 @@ function Details() {
                                 onClick={() =>
                                   handleCopy(
                                     buildQueryParams(
-                                      removeShopDomain(responseData?.[productId]?.short_link, ""),
+                                      removeShopDomain(
+                                        responseData?.[productId]?.short_link,
+                                        ""
+                                      ),
                                       "custom"
                                     ),
-                                    'custom-url'
+                                    "custom-url"
                                   )
                                 }
                               >
-                                <Icon source={copiedItems['custom-url'] ? CheckIcon : ClipboardIcon} tone="base" />
+                                <Icon
+                                  source={
+                                    copiedItems["custom-url"]
+                                      ? CheckIcon
+                                      : ClipboardIcon
+                                  }
+                                  tone="base"
+                                />
                               </Button>
                             </Tooltip>
                           )
@@ -1454,9 +1550,7 @@ function Details() {
                   </BlockStack>
                 </>
               )}
-
               <Divider />
-
               <BlockStack gap={200}>
                 <InlineStack gap={100}>
                   <Text as="h3">Short URL</Text>
@@ -1515,7 +1609,10 @@ function Details() {
                     value={responseData?.[productId]?.custom_url}
                     error={
                       responseData?.[productId]?.custom_url != undefined
-                        ? showErrorMessage(responseData?.[productId]?.custom_url, "Short URL")
+                        ? showErrorMessage(
+                            responseData?.[productId]?.custom_url,
+                            "Short URL"
+                          )
                         : false
                     }
                     onChange={(newValue) => setCustomURL(newValue)}
@@ -1537,18 +1634,28 @@ function Details() {
                             onClick={() =>
                               handleCopy(
                                 buildQueryParams(
-                                  removeShopDomain(responseData?.[productId]?.custom_url, ""),
+                                  removeShopDomain(
+                                    responseData?.[productId]?.custom_url,
+                                    ""
+                                  ),
                                   "short"
                                 ),
-                                'short-url'
+                                "short-url"
                               )
                             }
                           >
-                            <Icon source={copiedItems['short-url'] ? CheckIcon : ClipboardIcon} tone="base" />
+                            <Icon
+                              source={
+                                copiedItems["short-url"]
+                                  ? CheckIcon
+                                  : ClipboardIcon
+                              }
+                              tone="base"
+                            />
                           </Button>
                         </Tooltip>
-
-                      )}
+                      )
+                    }
                   />
                 </div>
               </BlockStack>
@@ -1565,22 +1672,13 @@ function Details() {
                   {validUtmEntries.map(([key, value]) => (
                     <FormLayout>
                       <FormLayout.Group>
-                        <TextField
-                          key={key}
-                          readOnly
-                          value={key}
-                        />
-                        <TextField
-                          key={key}
-                          readOnly
-                          value={value}
-                        />
+                        <TextField key={key} readOnly value={key} />
+                        <TextField key={key} readOnly value={value} />
                       </FormLayout.Group>
                     </FormLayout>
                   ))}
                 </BlockStack>
               )}
-
             </BlockStack>
           </Card>
         </Layout.Section>
@@ -1591,7 +1689,7 @@ function Details() {
               className="Polaris-BlockStack qr-code"
               style={{
                 "--pc-block-stack-order": "column",
-                "--pc-block-stack-gap-xs": "var(--p-space-600)",
+                "--pc-block-stack-gap-xs": "var(--p-space-400)",
               }}
             >
               <Text as="h3" variant="headingMd">
@@ -1637,25 +1735,29 @@ function Details() {
                 }}
               >
                 {responseData[productId]?.qr_code &&
-                  data?.plan_details?.features?.qr_code_create ? (
-                  <BlockStack gap={100}>
+                data?.plan_details?.features?.qr_code_create ? (
+                  <BlockStack gap={200}>
                     <div style={calculateHeight()} ref={qrCodeRef}>
                       <QRCode
                         value={buildQueryParams(
                           removeShopDomain(
                             responseData[productId]?.onlineStorePreviewUrl,
-                            responseData[productId]?.shopify_url,
-
+                            responseData[productId]?.shopify_url
                           ) + `?${responseData[productId]?.qr_code}`
                         )}
-                        size={APIPath === 'influencer-analytics' && validUtmEntries.length === 0 ? 131 : 210}
+                        size={
+                          APIPath === "influencer-analytics" &&
+                          validUtmEntries.length === 0
+                            ? 145
+                            : 210
+                        }
                       />
                     </div>
-                    
                     <Button
                       variant="primary"
                       icon={ArrowDownIcon}
                       onClick={() => downloadQRCode()}
+                      disabled={!data?.plan_details?.features?.qr_code_create}
                     >
                       Download
                     </Button>
@@ -1682,11 +1784,15 @@ function Details() {
               "--pc-shadow-bevel-z-index": 32,
               "--pc-shadow-bevel-content-xs": "",
               "--pc-shadow-bevel-box-shadow-xs": "var(--p-shadow-100)",
-              "--pc-shadow-bevel-border-radius-xs": "var(--p-border-radius-300)",
+              "--pc-shadow-bevel-border-radius-xs":
+                "var(--p-border-radius-300)",
             }}
           >
             {!data?.plan_details?.features?.click_analytics_product_page && (
-              <div className="premium-plan" style={{ position: "absolute", zIndex: 1 }}>
+              <div
+                className="premium-plan"
+                style={{ position: "absolute", zIndex: 1 }}
+              >
                 <p>
                   Get more insight with
                   <Button
@@ -1732,13 +1838,14 @@ function Details() {
                 <Text variant="headingMd">Click Analytics</Text>
                 <div
                   style={{
-                    ...(data?.plan_details?.features?.click_analytics_product_page
+                    ...(data?.plan_details?.features
+                      ?.click_analytics_product_page
                       ? {}
                       : {
-                        filter: "blur(3px)",
-                        opacity: 0.2,
-                        pointerEvents: "none",
-                      }),
+                          filter: "blur(3px)",
+                          opacity: 0.2,
+                          pointerEvents: "none",
+                        }),
                   }}
                 >
                   {initClickAnalyticsChart()}
@@ -1763,35 +1870,35 @@ function Details() {
                   </InlineStack>
                   {!data?.plan_details?.features
                     ?.device_analytics_product_page && (
-                      <div class="premium-plan">
-                        <p>
-                          Get more insight with
-                          <Button
-                            size="slim"
-                            onClick={() =>
-                              navigate(`/plans${window.location.search}`)
-                            }
-                            icon={
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
-                                  fill="#FFD700"
-                                  stroke="#FFD700"
-                                  strokeWidth="2"
-                                />
-                              </svg>
-                            }
-                          >
-                            Upgrade Plan
-                          </Button>
-                        </p>
-                      </div>
-                    )}
+                    <div class="premium-plan">
+                      <p>
+                        Get more insight with
+                        <Button
+                          size="slim"
+                          onClick={() =>
+                            navigate(`/plans${window.location.search}`)
+                          }
+                          icon={
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                                fill="#FFD700"
+                                stroke="#FFD700"
+                                strokeWidth="2"
+                              />
+                            </svg>
+                          }
+                        >
+                          Upgrade Plan
+                        </Button>
+                      </p>
+                    </div>
+                  )}
                   <div
                     class="Polaris-Box"
                     style={{
@@ -1802,7 +1909,6 @@ function Details() {
                       }),
                     }}
                   >
-
                     {initDeviceUsageChart()}
                   </div>
                 </BlockStack>
@@ -1890,35 +1996,35 @@ function Details() {
                   </InlineStack>
                   {!data?.plan_details?.features
                     ?.platform_analytics_product_page && (
-                      <div class="premium-plan">
-                        <p>
-                          Get more insight with
-                          <Button
-                            size="slim"
-                            onClick={() =>
-                              navigate(`/plans${window.location.search}`)
-                            }
-                            icon={
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
-                                  fill="#FFD700"
-                                  stroke="#FFD700"
-                                  strokeWidth="2"
-                                />
-                              </svg>
-                            }
-                          >
-                            Upgrade Plan
-                          </Button>
-                        </p>
-                      </div>
-                    )}
+                    <div class="premium-plan">
+                      <p>
+                        Get more insight with
+                        <Button
+                          size="slim"
+                          onClick={() =>
+                            navigate(`/plans${window.location.search}`)
+                          }
+                          icon={
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                                fill="#FFD700"
+                                stroke="#FFD700"
+                                strokeWidth="2"
+                              />
+                            </svg>
+                          }
+                        >
+                          Upgrade Plan
+                        </Button>
+                      </p>
+                    </div>
+                  )}
                   <div
                     class="Polaris-Box"
                     style={{
@@ -1929,7 +2035,6 @@ function Details() {
                       }),
                     }}
                   >
-
                     {PlatformsAnalyticsChart()}
                   </div>
                 </BlockStack>
@@ -1956,7 +2061,9 @@ function Details() {
               buttonAction={() => deleteUrl()}
               destructive={true}
               show={!data?.plan_details?.features?.remove_reset}
+              loading={isDeleting}
             />
+
             <Layout.Section></Layout.Section>
           </Layout>
           {/* <Layout>
@@ -2172,4 +2279,3 @@ function Details() {
 
 export default Details;
 /* DETAILS FUNCTIONAL COMPONENT END */
-

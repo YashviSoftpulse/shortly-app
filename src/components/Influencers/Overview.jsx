@@ -42,12 +42,12 @@ function Overview({ selectedDates }) {
     formData.append("uid", id);
     formData.append(
       "start_date",
-      selectedDates.start.toISOString().split("T")[0]
+      moment(selectedDates.start).format("YYYY-MM-DD")
     );
-    formData.append("end_date", selectedDates.end.toISOString().split("T")[0]);
+    formData.append("end_date", moment(selectedDates.end).format("YYYY-MM-DD"));
 
     const response = await fetchData(
-      getApiURL("/influencer-analytics"),
+      getApiURL("influencer-analytics"),
       formData
     );
 
@@ -66,6 +66,7 @@ function Overview({ selectedDates }) {
         phone: influencerInfo.phone || "-",
         status: influencerInfo.status || "-",
         updated_at: influencerInfo.updated_at || "-",
+        created_at: influencerInfo.created_at || "-",
       });
 
       const influencerAnalytics = response?.data;
@@ -89,7 +90,7 @@ function Overview({ selectedDates }) {
         total_commission: influencerCommission?.total_commission || "0",
       });
 
-      setStoreCurrency(response?.store_currency)
+      setStoreCurrency(response?.store_currency);
     } else {
       setVisitorAnalytics([]);
     }
@@ -188,7 +189,7 @@ function Overview({ selectedDates }) {
           },
         ]}
         theme="Light"
-      // state={data.length === 0 ? "Error" : "Success"}
+        // state={data.length === 0 ? "Error" : "Success"}
       />
     );
   };
@@ -249,15 +250,12 @@ function Overview({ selectedDates }) {
                 </InlineStack>
               </InlineStack>
               <Card>
-                {" "}
                 <SkeletonBodyText lines={5} />
               </Card>
               <Card>
-                {" "}
                 <SkeletonBodyText lines={5} />
               </Card>
               <Card>
-                {" "}
                 <SkeletonBodyText lines={5} />
               </Card>
             </BlockStack>
@@ -268,26 +266,36 @@ function Overview({ selectedDates }) {
           <BlockStack gap="400">
             <>
               <BlockStack gap="200">
-
                 <div className="influencerPlatform">
                   <Card>
                     <InlineStack gap={400} align="space-between">
                       {[
                         {
                           label: "Total Clicks",
-                          value: formatNumber(influencerAnalytics?.total_clicks) || "0",
+                          value:
+                            formatNumber(influencerAnalytics?.total_clicks) ||
+                            "0",
                         },
                         {
                           label: "Total Orders",
-                          value: formatNumber(influencerAnalytics?.total_orders) || "0",
+                          value:
+                            formatNumber(influencerAnalytics?.total_orders) ||
+                            "0",
                         },
                         {
                           label: "Cancelled Orders",
-                          value: formatNumber(influencerAnalytics?.total_cancelled_orders) || "0",
+                          value:
+                            formatNumber(
+                              influencerAnalytics?.total_cancelled_orders
+                            ) || "0",
                         },
                         {
                           label: "Commissions",
-                          value: formatNumber(influencerCommission?.total_commission) || "0",
+                          value:
+                            storeCurrency +
+                              formatNumber(
+                                influencerCommission?.total_commission
+                              ) || "0",
                         },
                       ].map(({ label, value }) => (
                         <BlockStack gap={200} key={label}>
@@ -322,27 +330,44 @@ function Overview({ selectedDates }) {
                       {[
                         {
                           label: "Add to Cart",
-                          value: formatNumber(influencerAnalytics?.total_add_to_cart) || "0",
+                          value:
+                            formatNumber(
+                              influencerAnalytics?.total_add_to_cart
+                            ) || "0",
                         },
                         {
                           label: "Revenue (Gross)",
-                          value: formatNumber(influencerAnalytics?.total_gross_revenue) || "0",
+                          value:
+                            storeCurrency +
+                              formatNumber(
+                                influencerAnalytics?.total_gross_revenue
+                              ) || "0",
                         },
                         {
                           label: "Revenue (Net)",
-                          value: formatNumber(influencerAnalytics?.total_net_revenue) || "0",
+                          value:
+                            storeCurrency +
+                              formatNumber(
+                                influencerAnalytics?.total_net_revenue
+                              ) || "0",
                         },
                         {
                           label: "Product Sales",
-                          value: formatNumber(influencerAnalytics?.total_products_revenue) || "0",
+                          value:
+                           storeCurrency +  formatNumber(
+                              influencerAnalytics?.total_products_revenue
+                            ) || "0",
                         },
                         {
                           label: "Total Shipping",
-                          value: formatNumber(influencerAnalytics?.total_shipping) || "0",
+                          value:
+                            storeCurrency + formatNumber(influencerAnalytics?.total_shipping) ||
+                            "0",
                         },
                         {
                           label: "Total Taxes",
-                          value: formatNumber(influencerAnalytics?.total_tax) || "0",
+                          value:
+                           storeCurrency +  formatNumber(influencerAnalytics?.total_tax) || "0",
                         },
                       ].map(({ label, value }) => (
                         <Card key={label}>
@@ -376,7 +401,7 @@ function Overview({ selectedDates }) {
                       <InlineStack align="space-between">
                         <Text variant="bodyMd">Influencer Name</Text>
                         <Text variant="bodySm" as="h5">
-                          {influencerInfo?.first_name}{" "}
+                          {influencerInfo?.first_name}
                           {influencerInfo?.last_name || "-"}
                         </Text>
                       </InlineStack>
@@ -384,14 +409,13 @@ function Overview({ selectedDates }) {
                       <InlineStack align="space-between">
                         <Text variant="bodyMd">Last Update</Text>
                         <Text variant="bodySm">
-                          {formatDate(influencerInfo?.updated_at) || "-"}
+                          {influencerInfo?.created_at || "-"}
                         </Text>
                       </InlineStack>
 
                       <InlineStack align="space-between">
                         <Text variant="bodyMd">Email</Text>
                         <Text variant="bodySm">
-                          {" "}
                           {influencerInfo?.email || "-"}
                         </Text>
                       </InlineStack>
@@ -427,12 +451,13 @@ function Overview({ selectedDates }) {
                         <Text variant="bodyMd">Commission Rule</Text>
                         <Text tone="attention">
                           {influencerInfo?.commission_value
-                            ? `${influencerInfo.commission_value}${influencerInfo.commission_type === "2"
-                              ? "%"
-                              : influencerInfo.commission_type === "3"
-                                ? ` ${storeCurrency}`
-                                : ""
-                            }`
+                            ? `${influencerInfo.commission_value}${
+                                influencerInfo.commission_type === "2"
+                                  ? "%"
+                                  : influencerInfo.commission_type === "3"
+                                  ? ` ${storeCurrency}`
+                                  : ""
+                              }`
                             : "-"}
                         </Text>
                       </InlineStack>
@@ -446,14 +471,14 @@ function Overview({ selectedDates }) {
                               ? "Only Product Price"
                               : influencerInfo.commission_based_on.toLowerCase() ===
                                 "2"
-                                ? "Product Price + Tax"
-                                : influencerInfo.commission_based_on.toLowerCase() ===
-                                  "3"
-                                  ? "Product Price + Shipping"
-                                  : influencerInfo.commission_based_on.toLowerCase() ===
-                                    "4"
-                                    ? "Total Order (Product + Shipping + Tax)"
-                                    : "-"
+                              ? "Product Price + Tax"
+                              : influencerInfo.commission_based_on.toLowerCase() ===
+                                "3"
+                              ? "Product Price + Shipping"
+                              : influencerInfo.commission_based_on.toLowerCase() ===
+                                "4"
+                              ? "Total Order (Product + Shipping + Tax)"
+                              : "-"
                             : "-"}
                         </Text>
                       </InlineStack>
@@ -503,13 +528,14 @@ function Overview({ selectedDates }) {
                                 (commission, index) => {
                                   const commissionValue =
                                     commission?.commission_value
-                                      ? `${commission?.commission_value}${commission?.commission_type === "2"
-                                        ? "%"
-                                        : commission?.commission_type ===
-                                          "3"
-                                          ? " GBP"
-                                          : ""
-                                      }`
+                                      ? `${commission?.commission_value}${
+                                          commission?.commission_type === "2"
+                                            ? "%"
+                                            : commission?.commission_type ===
+                                              "3"
+                                            ? " GBP"
+                                            : ""
+                                        }`
                                       : "0";
 
                                   const commissionOn =
@@ -519,14 +545,14 @@ function Overview({ selectedDates }) {
                                         ? "Only Product Price"
                                         : commission?.commission_based_on.toLowerCase() ===
                                           "2"
-                                          ? "Product Price + Tax"
-                                          : commission?.commission_based_on.toLowerCase() ===
-                                            "3"
-                                            ? "Product Price + Shipping"
-                                            : commission?.commission_based_on.toLowerCase() ===
-                                              "4"
-                                              ? "Total Order (Product + Shipping + Tax)"
-                                              : "-"
+                                        ? "Product Price + Tax"
+                                        : commission?.commission_based_on.toLowerCase() ===
+                                          "3"
+                                        ? "Product Price + Shipping"
+                                        : commission?.commission_based_on.toLowerCase() ===
+                                          "4"
+                                        ? "Total Order (Product + Shipping + Tax)"
+                                        : "-"
                                       : "1";
 
                                   return (
@@ -554,7 +580,9 @@ function Overview({ selectedDates }) {
                                       </IndexTable.Cell>
                                       <IndexTable.Cell>
                                         <InlineStack align="end">
-                                          {formatNumber(commission?.total_commission_during_this)}
+                                          {storeCurrency +formatNumber(
+                                            commission?.total_commission_during_this
+                                          )}
                                         </InlineStack>
                                       </IndexTable.Cell>
                                     </IndexTable.Row>
@@ -578,7 +606,9 @@ function Overview({ selectedDates }) {
                               Total Commission
                             </Text>
                             <Text variant="bodyLg" fontWeight="bold">
-                              {formatNumber(influencerCommission?.total_commission)}
+                              {formatNumber(
+                                influencerCommission?.total_commission
+                              )}
                             </Text>
                           </InlineStack>
                         </div>
@@ -617,7 +647,7 @@ function Overview({ selectedDates }) {
                       <BlockStack gap={200}>
                         <InlineStack gap={100}>
                           <Text variant="bodyMd" fontWeight="bold">
-                            Devices{" "}
+                            Devices
                           </Text>
                           <Tooltip
                             content={`The Device Analytics of Total clicks as well as Total Add to cart`}

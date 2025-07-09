@@ -37,7 +37,7 @@ function EditTemplate() {
 
   async function getEmailNotification() {
     setIsFetching(true);
-    const response = await fetchData(getApiURL(`/get-notification-settings`));
+    const response = await fetchData(getApiURL(`get-notification-settings`));
     if (response.status === true) {
       setTemplateSettings(response?.notification_settings?.[type]);
       setIsPreviewDetails(
@@ -75,7 +75,7 @@ function EditTemplate() {
     );
     const suffixUrl = "test-email";
     const response = fetchData(getApiURL(suffixUrl), formdata);
-    if (response.status === true) {
+    if (response.status === 200 || response.error === false) {
       setTestModal(false);
       setTestLoading(false);
       shopify.toast.show(response.message, { duration: 3000 });
@@ -104,7 +104,7 @@ function EditTemplate() {
     formdata.append(`${type}_subject`, templateSettings?.subject);
     formdata.append(`${type}_body`, templateSettings?.message);
     const response = await fetchData(
-      getApiURL("/save-notification-settings"),
+      getApiURL("save-notification-settings"),
       formdata
     );
     setIsSaving(false);
@@ -127,8 +127,8 @@ function EditTemplate() {
         }}
         secondaryActions={[
           { content: "Disable", destructive: 1 },
-          { content: "Preview", },
-          { content: "Test Email", },
+          { content: "Preview" },
+          { content: "Test Email" },
         ]}
         backAction={{
           onAction: () =>
@@ -161,21 +161,18 @@ function EditTemplate() {
     navigator.clipboard
       .writeText(variable)
       .then(() => {
-        // Show checkmark icon immediately for better UX
-        setCopiedItems(prev => ({ ...prev, [itemId]: true }));
-
-        // Show toast notification
+        setCopiedItems((prev) => ({ ...prev, [itemId]: true }));
         shopify.toast.show("Copied to Clipboard", { duration: 3000 });
-
-        // Return to clipboard icon after 1.5 seconds (faster response)
         setTimeout(() => {
-          setCopiedItems(prev => ({ ...prev, [itemId]: false }));
+          setCopiedItems((prev) => ({ ...prev, [itemId]: false }));
         }, 1500);
       })
       .catch((err) => {
         console.error("Failed to copy: ", err);
-        // Show error toast if copy fails
-        shopify.toast.show("Failed to copy to clipboard", { duration: 3000, isError: true });
+        shopify.toast.show("Failed to copy to clipboard", {
+          duration: 3000,
+          isError: true,
+        });
       });
   };
 
@@ -238,34 +235,35 @@ function EditTemplate() {
               <Text variant="headingMd" as="h6" tone="base">
                 Reference Variables
               </Text>
-              {templateSettings?.reference_variables.map(
-                (variable, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "4px",
-                      backgroundColor: "#f1f8f5",
-                      borderRadius: "5px",
-                      border: "1px solid #dfe3e8",
-                      fontSize: "12px",
-                      cursor: "pointer",
+              {templateSettings?.reference_variables.map((variable, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "4px",
+                    backgroundColor: "#f1f8f5",
+                    borderRadius: "5px",
+                    border: "1px solid #dfe3e8",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <span style={{ marginRight: "5px" }}>{variable}</span>
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopy(variable, index);
                     }}
+                    style={{ cursor: "pointer" }}
                   >
-                    <span style={{ marginRight: "5px" }}>{variable}</span>
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCopy(variable, index);
-                      }}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <Icon source={copiedItems[index] ? CheckIcon : ClipboardIcon} tone="success" />
-                    </span>
-                  </div>
-                )
-              )}
+                    <Icon
+                      source={copiedItems[index] ? CheckIcon : ClipboardIcon}
+                      tone="success"
+                    />
+                  </span>
+                </div>
+              ))}
             </BlockStack>
           </Card>
         </Layout.Section>
@@ -309,8 +307,9 @@ function EditTemplate() {
             </BlockStack>
           </Card>
         </Layout.Section>
+        <Layout.Section></Layout.Section>
+         <Layout.Section></Layout.Section>
       </Layout>
-
       <Modal
         size="large"
         open={isPreviewModalOpen}

@@ -185,7 +185,7 @@ const ProductList = ({ selectedTab }) => {
   const bulkGenerate = async () => {
     const data = new FormData();
     data.append("type", "redirect");
-    const response = await fetchData(getApiURL("/register_work"), data);
+    const response = await fetchData(getApiURL("register_work"), data);
     if (response?.status === true) {
       setIsBulkGenerateModal(false);
       shopify.toast.show(

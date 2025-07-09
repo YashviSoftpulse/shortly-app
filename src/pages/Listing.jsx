@@ -14,7 +14,9 @@ import {
   Tooltip,
   Icon,
   FormLayout,
+  Select,
   Box,
+  Link,
 } from "@shopify/polaris";
 import React, { useEffect, useState } from "react";
 import { fetchData, getApiURL } from "../action";
@@ -76,8 +78,10 @@ const Listing = () => {
       .then(() => {
         // Show checkmark icon immediately for better UX
         setCopiedItems(prev => ({ ...prev, [itemId]: true }));
+        
         // Show toast notification
         shopify.toast.show("Copied to Clipboard", { duration: 3000 });
+        
         // Return to clipboard icon after 1.5 seconds (faster response)
         setTimeout(() => {
           setCopiedItems(prev => ({ ...prev, [itemId]: false }));
@@ -260,7 +264,7 @@ const Listing = () => {
     if (data?.plan_details?.features?.qr_code_create)
       formdata.append("qr_code", `qr=${generateRandomString(20)}`);
     const response = await fetchData(
-      getApiURL("/create_url_redirect"),
+      getApiURL("create_url_redirect"),
       formdata
     );
     setGenerateLoader(false);
@@ -476,8 +480,8 @@ const Listing = () => {
                         <Text as="h3">Custom URL</Text>
                         <Tooltip
                           content={`This custom URL, created with your store '${SHOP}', removes
-                                     Shopify's predefined words like 'products,' 'pages,'
-                                     'collection,`}
+                                     Shopify's predefined words like 'products' 'pages' and
+                                     'collection'`}
                         >
                           <Icon tone="base" source={InfoIcon} />
                         </Tooltip>

@@ -34,21 +34,16 @@ function Links({ selectedDates, setStateTab }) {
   const [selected, setSelected] = useState("1");
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isTableLoading, setIsTableLoading] = useState(false);
-
   const [influencer, setInfluencers] = useState([]);
   const [totalLinksData, setTotalLinksData] = useState([]);
-
   const [viewModalActive, setViewModalActive] = useState(false);
   const [viewData, setViewData] = useState(null);
-
   const [productName, setProductName] = useState('');
-
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-
   const [searchValue, setSearchValue] = useState("");
   const [copiedItems, setCopiedItems] = useState({});
-
+const [storeCurrency, setStoreCurrency] = useState(null);
   const handleSelectChange = useCallback((value) => {
     setSelected(value);
   }, []);
@@ -120,13 +115,14 @@ function Links({ selectedDates, setStateTab }) {
     formData.append("page", page);
     formData.append("per_page", 10);
 
-    const response = await fetchData(getApiURL("/link-list"), formData);
+    const response = await fetchData(getApiURL("link-list"), formData);
 
     if (response?.status === true) {
       setInfluencers(response?.data || []);
       setTotalLinksData(response?.all);
       setTotalPages(response?.pagination?.total_pages);
       setCurrentPage(response?.pagination?.current_page);
+      setStoreCurrency(response?.currency_symbol || "Rs.");
     } else {
       setInfluencers([]);
     }
@@ -205,6 +201,7 @@ function Links({ selectedDates, setStateTab }) {
                   const custom =
                     totalLinksData?.custom_url_anlytics?.[key] || 0;
                   const qr = totalLinksData?.qr_code_anlytics?.[key] || 0;
+
                   return (
                     <Card key={label}>
                       <BlockStack gap={400}>
@@ -213,13 +210,13 @@ function Links({ selectedDates, setStateTab }) {
                             {label}
                           </Text>
                           <Text variant="bodyMd" fontWeight="bold">
-                            {formatNumber(total)}
+                            {key === "total_sales" ? storeCurrency + formatNumber(total) : formatNumber(total)}
                           </Text>
                         </InlineStack>
                         <BlockStack gap={200}>
                           <InlineStack align="space-between">
                             <Text>Short URL</Text>
-                            <Text>{formatNumber(short)}</Text>
+                            <Text>{key === "total_sales" ? storeCurrency + formatNumber(short) : formatNumber(short)}</Text>
                           </InlineStack>
                           {/* <InlineStack align="space-between">
                             <Text>Custom URL</Text>
@@ -227,7 +224,7 @@ function Links({ selectedDates, setStateTab }) {
                           </InlineStack> */}
                           <InlineStack align="space-between">
                             <Text>QR</Text>
-                            <Text>{formatNumber(qr)}</Text>
+                            <Text>{key === "total_sales" ? storeCurrency + formatNumber(qr) : formatNumber(qr)}</Text>
                           </InlineStack>
                         </BlockStack>
                       </BlockStack>
@@ -269,7 +266,7 @@ function Links({ selectedDates, setStateTab }) {
                       </InlineStack>
                     }
                   />
-                  <Bleed marginInline="400" marginBlockEnd={300}>
+                  <Bleed marginInline="400" marginBlockEnd={400}>
                     <IndexTable
                       resourceName={resourceName}
                       itemCount={influencer.length}
@@ -345,7 +342,7 @@ function Links({ selectedDates, setStateTab }) {
                               </IndexTable.Cell>
                               <IndexTable.Cell>
                                 <InlineStack align="end">
-                                  {formatNumber(item.anlytics.total.total_sales) || 0}
+                                  {storeCurrency +formatNumber(item.anlytics.total.total_sales) || 0}
                                 </InlineStack>
                               </IndexTable.Cell>
                               <IndexTable.Cell>
@@ -402,6 +399,7 @@ function Links({ selectedDates, setStateTab }) {
               APIPath="influencer-analytics"
               pageNumber={pageNumber}
               setStateTab={setStateTab}
+              storeCurrency={storeCurrency}
             />
           </Layout>
         )}

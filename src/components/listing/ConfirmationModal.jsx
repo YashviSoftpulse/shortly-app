@@ -14,6 +14,7 @@ function ConfirmationModal({
   buttonAction,
   destructive,
   show,
+  loading = false, // Default to false if not provided
 }) {
   const navigate = useNavigate();
   // useEffect(() => {
@@ -43,6 +44,7 @@ function ConfirmationModal({
           content: buttonText,
           onAction: () => buttonAction(),
           destructive: destructive,
+          loading: loading, 
         }
       }
       secondaryActions={[

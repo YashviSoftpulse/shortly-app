@@ -45,6 +45,7 @@ function View({
   nextData,
   APIPath,
   pageNumber,
+  storeCurrency
 }) {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
@@ -74,6 +75,7 @@ function View({
         previousData,
         APIPath,
         pageNumber,
+        storeCurrency
       })
     );
 
@@ -115,7 +117,13 @@ function View({
       domainPrefix = `https://${SHOP}/`;
     }
 
-    return `${domainPrefix}${baseURL}?${params.toString()}`;
+    const queryString = params.toString();
+    if (queryString) {
+      const separator = baseURL.includes("?") ? "&" : "?";
+      return `${domainPrefix}${baseURL}${separator}${queryString}`;
+    } else {
+      return `${domainPrefix}${baseURL}`;
+    }
   };
 
   let parsedUtmData = {};
@@ -125,10 +133,10 @@ function View({
     console.error('Invalid JSON in utm_datas');
   }
 
+
   const validUtmEntries = Object.entries(parsedUtmData || {}).filter(
     ([key, value]) => value?.trim() !== ''
   );
-
 
   const handleCopy = (text, itemId) => {
     navigator.clipboard
@@ -152,7 +160,7 @@ function View({
       });
   };
 
-  const downloadQRCode = () => {
+const downloadQRCode = () => {
     if (qrCodeRef.current) {
       html2canvas(qrCodeRef.current, {
         scale: 2,
@@ -160,7 +168,7 @@ function View({
       })
         .then((canvas) => {
           canvas.toBlob((blob) => {
-            saveAs(blob, `${data[id]?.handle}-qrcode.jpg`);
+            saveAs(blob, `${(data[id]?.title || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')}-qrcode.jpg`);
           }, "image/jpeg");
         })
         .catch((err) => {
@@ -198,7 +206,7 @@ function View({
                         <Button
                           size="slim"
                           onClick={() =>
-                            navigate(`/ plans${window.location.search}`)
+                            navigate(`/plans${window.location.search}`)
                           }
                           icon={
                             <svg
@@ -255,7 +263,7 @@ function View({
                         <Button
                           size="slim"
                           onClick={() =>
-                            navigate(`/ plans${window.location.search}`)
+                            navigate(`/plans${window.location.search}`)
                           }
                           icon={
                             <svg
@@ -314,7 +322,7 @@ function View({
                         <Button
                           size="slim"
                           onClick={() =>
-                            navigate(`/ plans${window.location.search}`)
+                            navigate(`/plans${window.location.search}`)
                           }
                           icon={
                             <svg
@@ -372,7 +380,7 @@ function View({
                         <Button
                           size="slim"
                           onClick={() =>
-                            navigate(`/ plans${window.location.search}`)
+                            navigate(`/plans${window.location.search}`)
                           }
                           icon={
                             <svg
@@ -414,7 +422,7 @@ function View({
                   </Text>
 
                   <Text as="h4" variant="headingLg">
-                    {formatNumber(data[id]?.anlytics?.total?.total_sales || 0)}
+                    {storeCurrency === undefined ? formatNumber(data[id]?.anlytics?.total?.total_sales) : storeCurrency + formatNumber(data[id]?.anlytics?.total?.total_sales || 0)}
                   </Text>
                 </div>
               </Card>
@@ -476,8 +484,7 @@ function View({
                         <Text as="h3">Custom URL</Text>
                         <Tooltip
                           content={`This custom URL, created with your store '${SHOP}', removes
-                      Shopify's predefined words like 'products,' 'pages,'
-                      'collection,`}
+                      Shopify's predefined words like 'products', 'pages' and 'collection'`}
                         >
                           <Icon tone="base" source={InfoIcon} />
                         </Tooltip>
@@ -649,6 +656,7 @@ function View({
 
                             ) + `?${data[id]?.qr_code}`
                           )}
+                          
                           size={APIPath === 'influencer-analytics' && validUtmEntries.length === 0 ? 131 : 210}
                         />
                       </div>
@@ -656,6 +664,7 @@ function View({
                         variant="primary"
                         icon={ArrowDownIcon}
                         onClick={() => downloadQRCode()}
+                        disabled={!plancheck?.plan_details?.features?.qr_code_create}
                       >
                         Download
                       </Button>

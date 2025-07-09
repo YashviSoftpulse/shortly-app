@@ -21,6 +21,9 @@ import {
   SkeletonBodyText,
   Divider,
   EmptySearchResult,
+  Banner,
+  BlockStack,
+  Bleed,
 } from "@shopify/polaris";
 import { DeleteIcon, EditIcon, ExchangeIcon } from "@shopify/polaris-icons";
 import { fetchData, getApiURL } from "../action";
@@ -44,9 +47,10 @@ function Influencers() {
   const [loadingRowId, setLoadingRowId] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [storeCurrency, setStoreCurrency] = useState("Rs.");
-
   const { data, loading, error } = useApiData();
-
+  const urlParams = new URLSearchParams(window.location.search);
+  const SHOP = urlParams.get("shop");
+  const dashboardLink = `https://${SHOP}/apps/url-shortner/login`;
   const navigate = useNavigate();
   const itemsPerPage = 10;
 
@@ -70,10 +74,10 @@ function Influencers() {
   useEffect(() => {
     const fetchInfluencers = async () => {
       setIsLoading(true);
-      const response = await fetchData(getApiURL("/get-influencers"));
+      const response = await fetchData(getApiURL("get-influencers"));
       if (response?.status === true) {
         setInfluencers(response.data || []);
-        setStoreCurrency(response?.store_currency)
+        setStoreCurrency(response?.store_currency);
       } else {
         console.error("Error fetching influencers:", response?.message);
         setInfluencers([]);
@@ -110,12 +114,13 @@ function Influencers() {
       commission:
         inf.commission_type === "1"
           ? 0
-          : `${inf.commission_value}${inf.commission_type === "2"
-            ? "%"
-            : inf.commission_type === "3"
-              ? ` ${storeCurrency}`
-              : ""
-          }`,
+          : `${inf.commission_value}${
+              inf.commission_type === "2"
+                ? "%"
+                : inf.commission_type === "3"
+                ? ` ${storeCurrency}`
+                : ""
+            }`,
       cstatus: inf.cstatus,
       status: inf.status,
       applicationTime: inf.updated_at || inf.created_at || "—",
@@ -177,15 +182,10 @@ function Influencers() {
     if (sortableColumns.hasOwnProperty(sortColumnIndex)) {
       const key = sortableColumns[sortColumnIndex];
       data.sort((a, b) => {
-        if (
-          selectedSort === "newest" ||
-          selectedSort === "oldest"
-        ) {
+        if (selectedSort === "newest" || selectedSort === "oldest") {
           const timeA = new Date(a.applicationTime);
           const timeB = new Date(b.applicationTime);
-          return selectedSort === "newest"
-            ? timeB - timeA
-            : timeA - timeB;
+          return selectedSort === "newest" ? timeB - timeA : timeA - timeB;
         }
 
         if (
@@ -251,7 +251,7 @@ function Influencers() {
       const formData = new FormData();
       formData.append("uid", programToDelete);
       const response = await fetchData(
-        getApiURL("/delete-influencer"),
+        getApiURL("delete-influencer"),
         formData
       );
 
@@ -276,7 +276,6 @@ function Influencers() {
   };
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(paginatedData);
 
@@ -284,7 +283,7 @@ function Influencers() {
     setRegeLoading(true);
     const formData = new FormData();
     formData.append("uid", id);
-    const response = await fetchData(getApiURL("/only-invite"), formData);
+    const response = await fetchData(getApiURL("only-invite"), formData);
     if (response?.status === true) {
       shopify.toast.show("New invite link generated successfully.", {
         duration: 3000,
@@ -397,11 +396,12 @@ function Influencers() {
   ];
 
   const handleInviteClick = () => {
-    if (data?.plan_details?.features?.influencer_create_limit == 0) {
+    console.log("data", data);
+    if (data?.plan_details?.name == "Free") {
       setShowUpgradeModal(true);
     } else {
       setShowUpgradeModal(false);
-      navigate(`/influencer/invite${window.location.search}`)
+      navigate(`/influencer/invite${window.location.search}`);
     }
   };
 
@@ -409,7 +409,11 @@ function Influencers() {
     <Page
       title="Influencers"
       primaryAction={
-        <Button variant="primary" onClick={handleInviteClick}>
+        <Button
+          variant="primary"
+          onClick={handleInviteClick}
+          disabled={data?.plan_details?.name === "Free"}
+        >
           Invite Influencer
         </Button>
       }
@@ -429,7 +433,8 @@ function Influencers() {
           {showUpgradeModal && (
             <div class="premium-plan-influencer">
               <p>
-                Upgrade to Invite Influencers
+                Upgrade your plan to connect with influencers and track
+                results—all in one place.
                 <Button
                   size="slim"
                   onClick={() => navigate(`/plans${window.location.search}`)}
@@ -456,93 +461,152 @@ function Influencers() {
           )}
         </Modal.Section>
       </Modal>
+      <BlockStack gap={data?.plan_details?.name === "Free" && 300}>
+        <BlockStack gap={300}>
+          <Banner title="Access Your Influencer Dashboard" status="info">
+            <p>
+              You can now manage your affiliate links, track performance
+              metrics, and stay up to date with your campaign activity through
+              your personalized influencer dashboard. To access it, please{" "}
+              <Link url={dashboardLink} external>
+                click here
+              </Link>
+              .
+            </p>
+          </Banner>
 
-      <div className="influencerListTabs">
-        <Tabs tabs={tabs} selected={selected} onSelect={handleTabChange} />
-      </div>
-
-      <LegacyCard>
-        <div className="influencerListSearch">
-          <div style={{ flex: 1 }}>
-            <TextField
-              label="Search Influencers"
-              labelHidden
-              value={searchValue}
-              onChange={handleSearchChange}
-              placeholder="Search by name"
-              clearButton
-              onClearButtonClick={() => handleSearchChange("")}
-            />
-          </div>
-          <div style={{ paddingLeft: "10px" }}>
-            <Select
-              label="Sort by"
-              labelInline
-              options={options}
-              onChange={handleSelectChange}
-              value={selectedSort}
-            />
-          </div>
-        </div>
-
-        {isLoading ? (
-          <div style={{ padding: "20px", textAlign: "center" }}>
-            <SkeletonTabs count={4} fitted />
-            <SkeletonBodyText lines={5} />
-          </div>
-        ) : (
-          <div className="maininfluncerlist">
-            <IndexTable
-              resourceName={{ singular: "influencer", plural: "influencers" }}
-              itemCount={paginatedData.length}
-              selectedItemsCount={
-                allResourcesSelected ? "All" : selectedResources.length
-              }
-              onSelectionChange={handleSelectionChange}
-              headings={[
-                { title: "Influencer Name", isSortable: true },
-                { title: "Commission" },
-                { title: "Cooperation Status" },
-                { title: "Application Time" },
-                { title: "Status", alignment: "end" },
-                { title: "Actions", alignment: "end" },
-              ]}
-              sortDirection={sortDirection}
-              sortColumnIndex={sortColumnIndex}
-              onSort={handleSort}
-              selectable={false}
-              emptyState={
-                <EmptySearchResult
-                  title="No influencers found"
-                  description="Try adjusting your filters or search criteria to find influencers."
-                  withIllustration
-                />
-              }
-            >
-              {rowMarkup}
-            </IndexTable>
-
-            <Divider borderColor="border" />
-
-            <div
-              style={{
-                backgroundColor: "#f7f7f7",
-                padding: "10px",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              <Pagination
-                hasPrevious={currentPage > 1}
-                onPrevious={() => setCurrentPage((prev) => prev - 1)}
-                hasNext={currentPage < totalPages}
-                onNext={() => setCurrentPage((prev) => prev + 1)}
+          {data?.plan_details?.name !== "Free" && (
+            <div className="influencerListTabs">
+              <Tabs
+                tabs={tabs}
+                selected={selected}
+                onSelect={handleTabChange}
               />
             </div>
-          </div>
-        )}
-      </LegacyCard>
+          )}
+        </BlockStack>
 
+        <LegacyCard>
+          <Bleed marginBlockEnd={500}>
+            {data?.plan_details?.name !== "Free" && (
+              <div className="influencerListSearch">
+                <div style={{ flex: 1 }}>
+                  <TextField
+                    label="Search Influencers"
+                    labelHidden
+                    value={searchValue}
+                    onChange={handleSearchChange}
+                    placeholder="Search by name"
+                    clearButton
+                    onClearButtonClick={() => handleSearchChange("")}
+                  />
+                </div>
+                <div style={{ paddingLeft: "10px" }}>
+                  <Select
+                    label="Sort by"
+                    labelInline
+                    options={options}
+                    onChange={handleSelectChange}
+                    value={selectedSort}
+                  />
+                </div>
+              </div>
+            )}
+
+            {isLoading ? (
+              <div style={{ padding: "20px", textAlign: "center" }}>
+                <SkeletonTabs count={4} fitted />
+                <SkeletonBodyText lines={5} />
+              </div>
+            ) : (
+              <div className="maininfluncerlist">
+                {data?.plan_details?.name === "Free" ? (
+                  <div class="premium-plan-influencer">
+                    <p>
+                      Upgrade your plan to connect with influencers and track
+                      results—all in one place.
+                      <Button
+                        size="slim"
+                        onClick={() =>
+                          navigate(`/plans${window.location.search}`)
+                        }
+                        icon={
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                              fill="#FFD700"
+                              stroke="#FFD700"
+                              strokeWidth="2"
+                            />
+                          </svg>
+                        }
+                      >
+                        Upgrade Plan
+                      </Button>
+                    </p>
+                  </div>
+                ) : (
+                  <IndexTable
+                    resourceName={{
+                      singular: "influencer",
+                      plural: "influencers",
+                    }}
+                    itemCount={paginatedData.length}
+                    selectedItemsCount={
+                      allResourcesSelected ? "All" : selectedResources.length
+                    }
+                    onSelectionChange={handleSelectionChange}
+                    headings={[
+                      { title: "Influencer Name", isSortable: true },
+                      { title: "Commission" },
+                      { title: "Cooperation Status" },
+                      { title: "Application Time" },
+                      { title: "Status", alignment: "end" },
+                      { title: "Actions", alignment: "end" },
+                    ]}
+                    sortDirection={sortDirection}
+                    sortColumnIndex={sortColumnIndex}
+                    onSort={handleSort}
+                    selectable={false}
+                    emptyState={
+                      <EmptySearchResult
+                        title="No influencers found"
+                        description="Try adjusting your filters or search criteria to find influencers."
+                        withIllustration
+                      />
+                    }
+                  >
+                    {rowMarkup}
+                  </IndexTable>
+                )}
+                <Divider borderColor="border" />
+                {data?.plan_details?.name !== "Free" && (
+                  <div
+                    style={{
+                      backgroundColor: "#f7f7f7",
+                      padding: "6px",
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Pagination
+                      hasPrevious={currentPage > 1}
+                      onPrevious={() => setCurrentPage((prev) => prev - 1)}
+                      hasNext={currentPage < totalPages}
+                      onNext={() => setCurrentPage((prev) => prev + 1)}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </Bleed>
+        </LegacyCard>
+      </BlockStack>
       {/* Delete Modal */}
       <Modal
         open={deleteModalActive}
@@ -594,7 +658,6 @@ function Influencers() {
           </Text>
         </Modal.Section>
       </Modal>
-
     </Page>
   );
 }

@@ -3,15 +3,19 @@ import {
     Page,
     Tabs,
     InlineStack,
+    Button,
 } from '@shopify/polaris';
 
-import { Overview, Links, Payouts } from '../../../components';
-import { useCallback, useEffect, useState } from 'react';
+import { Overview, Links, Payouts, Create } from '../../../components';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DateRangePicker } from '../../../components';
 
 function InfluencerDashboard() {
 
     const [selected, setSelected] = useState(0);
+    const [showCreatePayoutModal, setShowCreatePayoutModal] = useState(false);
+
+    const payoutsRef = useRef();
 
     function getESTDate(offsetDays = 0) {
         const now = new Date();
@@ -60,8 +64,8 @@ function InfluencerDashboard() {
     const renderTabContent = () => {
         switch (selected) {
             case 0: return (<Overview selectedDates={selectedDates} />);
-            case 1: return (<Links />);
-            case 2: return (<Payouts />);
+            case 1: return (<Links selectedDates={selectedDates} />);
+            case 2: return (<Payouts ref={payoutsRef} />);
             default: return <Overview selectedDates={selectedDates} />;
         }
     };
@@ -81,16 +85,27 @@ function InfluencerDashboard() {
                                 value={selectedDates}
                             />
                         )}
+                        {selected === 2 && (
+                            <Button variant="primary" onClick={() => setShowCreatePayoutModal(true)}>
+                                Create Payout
+                            </Button>
+                        )}
                     </InlineStack>
 
                 </div>
                 {renderTabContent()}
+                {showCreatePayoutModal && (
+                    <Create
+                        onClose={() => setShowCreatePayoutModal(false)}
+                        onSuccess={() => payoutsRef.current?.refreshData?.()} 
+                    />
+                )}
+
+
             </BlockStack>
         </Page>
     );
 }
 
 export default InfluencerDashboard;
-
-
 

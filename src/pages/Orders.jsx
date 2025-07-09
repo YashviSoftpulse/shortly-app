@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
   Bleed,
-  BlockStack,
   Button,
   Card,
-  IndexFilters,
   IndexFiltersMode,
   IndexTable,
-  InlineStack,
   Layout,
-  LegacyCard,
   Page,
   Select,
   Text,
@@ -34,13 +30,9 @@ const Orders = ({ selectedTab }) => {
   const [ordersData, setOrdersData] = useState([]);
   const [filteredOrdersData, setFilteredOrdersData] = useState([]);
   const [isLoading, setIsloading] = useState(false);
-  const [isPageType, setIsPageType] = useState("");
-  const [nextData, setNextData] = useState(false);
   const limit = 10;
-  const [previousData, setPreviousData] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortSelected, setSortSelected] = useState("ASC");
-
   const urlParams = new URLSearchParams(window.location.search);
   const SHOP = urlParams.get("shop");
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
@@ -96,7 +88,7 @@ const Orders = ({ selectedTab }) => {
     setIsloading(true);
     const data = new FormData();
     data.append("orderby", sortSelected);
-    const response = await fetchData(getApiURL("/orders"), data);
+    const response = await fetchData(getApiURL("orders"), data);
     setIsloading(false);
     if (response.status == true) {
       setOrdersData(response?.data);
@@ -221,10 +213,12 @@ const Orders = ({ selectedTab }) => {
                     <Button variant="plain" icon={SearchIcon} marginTop={10} />
                   )
                 }
+                disabled={!data?.plan_details?.features?.orders}
                 connectedRight={
                   <Select
                     value={sortSelected}
                     onChange={handleSort}
+                    disabled={!data?.plan_details?.features?.orders}
                     options={[
                       {
                         label: "Oldest to Newest",
@@ -241,32 +235,30 @@ const Orders = ({ selectedTab }) => {
                 }
               />
               <Bleed marginInline="400" marginBlockEnd="400">
-                
-                  <IndexTable
-                    resourceName={{ singular: "Order", plural: "Orders" }}
-                    itemCount={filteredOrdersData.length}
-                    selectedItemsCount={
-                      allResourcesSelected ? "All" : selectedResources?.length
-                    }
-                    onSelectionChange={handleSelectionChange}
-                    selectable={false}
-                    loading={isLoading}
-                    headings={[
-                      { title: "Order" },
-                      { title: "Name" },
-                      { title: "Email" },
-                      { title: "Created Date" },
-                    ]}
-                    pagination={{
-                      hasNext: currentPage * limit < filteredOrdersData.length,
-                      hasPrevious: currentPage > 1,
-                      onNext: () => changePage("next"),
-                      onPrevious: () => changePage("previous"),
-                    }}
-                  >
-                    {rowMarkup}
-                  </IndexTable>
-                
+                <IndexTable
+                  resourceName={{ singular: "Order", plural: "Orders" }}
+                  itemCount={filteredOrdersData.length}
+                  selectedItemsCount={
+                    allResourcesSelected ? "All" : selectedResources?.length
+                  }
+                  onSelectionChange={handleSelectionChange}
+                  selectable={false}
+                  loading={isLoading}
+                  headings={[
+                    { title: "Order" },
+                    { title: "Name" },
+                    { title: "Email" },
+                    { title: "Created Date" },
+                  ]}
+                  pagination={{
+                    hasNext: currentPage * limit < filteredOrdersData.length,
+                    hasPrevious: currentPage > 1,
+                    onNext: () => changePage("next"),
+                    onPrevious: () => changePage("previous"),
+                  }}
+                >
+                  {rowMarkup}
+                </IndexTable>
               </Bleed>
             </div>
           </Card>

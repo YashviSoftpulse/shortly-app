@@ -98,7 +98,7 @@ const CollectionList = ({ selectedTab }) => {
   const getCollectionsData = async (data) => {
     setPageData(data?.get("previousPage") || data?.get("nextPage"));
     setIsloading(true);
-    const response = await fetchData(getApiURL("/collection_list"), data);
+    const response = await fetchData(getApiURL("collection_list"), data);
     setIsloading(false);
     if (response.status === true) {
       setCollectionData(response?.data);

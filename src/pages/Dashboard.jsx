@@ -61,7 +61,7 @@ function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState([]);
   const [htmlContent, setHtmlContent] = useState("");
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const { data, loading, error } = useApiData();
   const handleDateRangeChange = (value) => {
@@ -105,7 +105,7 @@ function Dashboard() {
 
   const deshboardSetup = async () => {
     setIsLoading(true);
-    const fetchApi = await fetchData(getApiURL("/app_status"));
+    const fetchApi = await fetchData(getApiURL("app_status"));
     if (fetchApi?.status === true) {
       setBannerDismissed(fetchApi.extension_banner);
     }
@@ -147,7 +147,7 @@ function Dashboard() {
           },
         ]}
         theme="Light"
-      // state={data.length === 0 ? "Error" : "Success"}
+        // state={data.length === 0 ? "Error" : "Success"}
       />
     );
   };
@@ -181,7 +181,7 @@ function Dashboard() {
     );
   };
   const fetchVacationContent = async () => {
-    const response = await fetchData(getApiURL("/holiday"));
+    const response = await fetchData(getApiURL("holiday"));
     if (response?.status === true) {
       setHtmlContent(response?.html);
     }
@@ -212,7 +212,6 @@ function Dashboard() {
       <DonutChart legendPosition="left" data={categories} theme="Light" />
     );
   };
-
   const initDeviceUsageChart = () => {
     const platforms = vistorAnalytics.devices || {};
     const data = Object.entries(platforms).map(([name, value]) => ({
@@ -238,11 +237,10 @@ function Dashboard() {
           },
         ]}
         theme="Light"
-      // state={data.length === 0 ? "Error" : "Success"}
+        // state={data.length === 0 ? "Error" : "Success"}
       />
     );
   };
-
   const citiesChart = () => {
     const categories = Object.entries(vistorAnalytics?.cities || {}).map(
       ([name, value], index) => ({
@@ -274,7 +272,6 @@ function Dashboard() {
       />
     );
   };
-
   const initStatesChart = () => {
     const categories = Object.entries(vistorAnalytics?.states || {}).map(
       ([name, value], index) => ({
@@ -306,7 +303,6 @@ function Dashboard() {
       />
     );
   };
-
   const CountriesChart = () => {
     const categories = Object.entries(vistorAnalytics?.countries || {}).map(
       ([name, value], index) => ({
@@ -333,7 +329,6 @@ function Dashboard() {
       <DonutChart legendPosition="left" data={categories} theme="Light" />
     );
   };
-
   function formatNumber(value) {
     if (value >= 1000000000) {
       return (value / 1000000000).toFixed(2) + "B";
@@ -420,7 +415,8 @@ function Dashboard() {
                     " minmax(0, 0.5fr) minmax(0, 2fr)",
                   "--pc-inline-grid-gap-xs": "var(--p-space-400)",
                   ...(!data?.plan_details?.features?.total_clicks_dashboard && {
-                    filter: "blur(3px)", opacity: 0.2,
+                    filter: "blur(3px)",
+                    opacity: 0.2,
                   }),
                 }}
               >
@@ -478,7 +474,8 @@ function Dashboard() {
                   "--pc-inline-grid-gap-xs": "var(--p-space-400)",
                   ...(!data?.plan_details?.features
                     ?.total_add_to_cart_dashboard && {
-                    filter: "blur(3px)", opacity: 0.2,
+                    filter: "blur(3px)",
+                    opacity: 0.2,
                   }),
                 }}
               >
@@ -533,7 +530,8 @@ function Dashboard() {
                   "--pc-inline-grid-gap-xs": "var(--p-space-400)",
                   ...(!data?.plan_details?.features
                     ?.total_checkouts_dashboard && {
-                    filter: "blur(3px)", opacity: 0.2,
+                    filter: "blur(3px)",
+                    opacity: 0.2,
                   }),
                 }}
               >
@@ -588,7 +586,8 @@ function Dashboard() {
                   "--pc-inline-grid-gap-xs": "var(--p-space-400)",
                   ...(!data?.plan_details?.features
                     ?.click_analytics_dashboard && {
-                    filter: "blur(3px)", opacity: 0.2,
+                    filter: "blur(3px)",
+                    opacity: 0.2,
                   }),
                 }}
               >
@@ -641,12 +640,15 @@ function Dashboard() {
                   </p>
                 </div>
               )}
+
               <div
                 class="Polaris-Box"
                 style={{
                   ...(!data?.plan_details?.features
                     ?.click_analytics_dashboard && {
-                    filter: "blur(3px)", opacity: 0.2,
+                    filter: "blur(3px)",
+                    opacity: 0,
+                    pointerEvents: "none",
                   }),
                 }}
               >
@@ -671,42 +673,44 @@ function Dashboard() {
                   </InlineStack>
                   {!data?.plan_details?.features
                     ?.device_analytics_dashboard && (
-                      <div class="premium-plan">
-                        <p>
-                          Get more insight with{" "}
-                          <Button
-                            size="slim"
-                            onClick={() =>
-                              navigate(`/plans${window.location.search}`)
-                            }
-                            icon={
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                                style={{ display: "block" }}
-                              >
-                                <path
-                                  d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
-                                  fill="gold"
-                                  stroke="gold"
-                                  strokeWidth="2"
-                                />
-                              </svg>
-                            }
-                          >
-                            Upgrade Plan
-                          </Button>
-                        </p>
-                      </div>
-                    )}
+                    <div class="premium-plan">
+                      <p>
+                        Get more insight with{" "}
+                        <Button
+                          size="slim"
+                          onClick={() =>
+                            navigate(`/plans${window.location.search}`)
+                          }
+                          icon={
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                              style={{ display: "block" }}
+                            >
+                              <path
+                                d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                                fill="gold"
+                                stroke="gold"
+                                strokeWidth="2"
+                              />
+                            </svg>
+                          }
+                        >
+                          Upgrade Plan
+                        </Button>
+                      </p>
+                    </div>
+                  )}
                   <div
                     class="Polaris-Box"
                     style={{
                       ...(!data?.plan_details?.features
                         ?.device_analytics_dashboard && {
-                        filter: "blur(3px)", opacity: 0.2,
+                        filter: "blur(3px)",
+                        opacity: 0,
+                        pointerEvents: "none",
                       }),
                     }}
                   >
@@ -793,41 +797,43 @@ function Dashboard() {
                   </InlineStack>
                   {!data?.plan_details?.features
                     ?.platform_analytics_dashboard && (
-                      <div class="premium-plan">
-                        <p>
-                          Get more insight with{" "}
-                          <Button
-                            size="slim"
-                            onClick={() =>
-                              navigate(`/plans${window.location.search}`)
-                            }
-                            icon={
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
-                                  fill="#FFD700"
-                                  stroke="#FFD700"
-                                  strokeWidth="2"
-                                />
-                              </svg>
-                            }
-                          >
-                            Upgrade Plan
-                          </Button>
-                        </p>
-                      </div>
-                    )}
+                    <div class="premium-plan">
+                      <p>
+                        Get more insight with{" "}
+                        <Button
+                          size="slim"
+                          onClick={() =>
+                            navigate(`/plans${window.location.search}`)
+                          }
+                          icon={
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                                fill="#FFD700"
+                                stroke="#FFD700"
+                                strokeWidth="2"
+                              />
+                            </svg>
+                          }
+                        >
+                          Upgrade Plan
+                        </Button>
+                      </p>
+                    </div>
+                  )}
                   <div
                     class="Polaris-Box"
                     style={{
                       ...(!data?.plan_details?.features
                         ?.platform_analytics_dashboard && {
-                        filter: "blur(3px)", opacity: 0.2,
+                        filter: "blur(3px)",
+                        opacity: 0,
+                        pointerEvents: "none",
                       }),
                     }}
                   >

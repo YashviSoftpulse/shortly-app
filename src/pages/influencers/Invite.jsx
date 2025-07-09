@@ -52,9 +52,9 @@ function InviteInfluencer() {
   };
 
   const fetchStoreCurrency = async () => {
-    const response = await fetchData(getApiURL("/get-influencers"));
+    const response = await fetchData(getApiURL("get-influencers"));
     if (response?.status === true) {
-      setStoreCurrency(response?.store_currency)
+      setStoreCurrency(response?.store_currency);
     } else {
       console.error("Error fetching influencers:", response?.message);
     }
@@ -76,22 +76,20 @@ function InviteInfluencer() {
     formPayload.append("commissionValue", commissionValue);
     formPayload.append("commissionOn", commissionBase);
 
-    try {
-      const response = await fetchData(getApiURL("/invite"), formPayload);
-      if (response?.status === true) {
-        shopify.toast.show(response?.message, { duration: 3000 });
-        navigate(`/influencers${window.location.search}`);
-      } else {
-        setIsSaving(false);
-        shopify.toast.show(response?.error?.email || response?.message, {
+    const response = await fetchData(getApiURL("invite"), formPayload);
+    if (response?.status === true) {
+      shopify.toast.show(response?.message, { duration: 3000 });
+      navigate(`/influencers${window.location.search}`);
+      setIsSaving(false);
+    } else {
+      setIsSaving(false);
+      shopify.toast.show(
+        response?.error?.email || response?.error?.phone || response?.message,
+        {
           duration: 3000,
           isError: true,
-        });
-      }
-    } catch (error) {
-      setIsSaving(false);
-    } finally {
-      setIsSaving(false);
+        }
+      );
     }
   };
 
@@ -173,7 +171,6 @@ function InviteInfluencer() {
               </Text>
             </BlockStack>
             <BlockStack gap="200">
-
               <div className="commissionTypes">
                 <Select
                   label="Commission Type"
@@ -191,7 +188,13 @@ function InviteInfluencer() {
                   <TextField
                     type="number"
                     label="Influencer Commission"
-                    suffix={commissionType === "2" ? "%" : commissionType === "3" ? storeCurrency : ""}
+                    suffix={
+                      commissionType === "2"
+                        ? "%"
+                        : commissionType === "3"
+                        ? storeCurrency
+                        : ""
+                    }
                     min={0}
                     value={commissionValue}
                     onChange={setCommissionValue}
@@ -199,7 +202,6 @@ function InviteInfluencer() {
                     style={{ flex: 1 }}
                   />
                 )}
-
               </div>
 
               {commissionType !== "1" && (
@@ -207,9 +209,12 @@ function InviteInfluencer() {
                   label="Commission Base"
                   options={[
                     { label: "Only Product Price", value: "1" },
-                    { label: "Product Price + Tax", value: "2", },
-                    { label: "Product Price + Shipping", value: "3", },
-                    { label: "Total Order (Product + Shipping + Tax)", value: "4", },
+                    { label: "Product Price + Tax", value: "2" },
+                    { label: "Product Price + Shipping", value: "3" },
+                    {
+                      label: "Total Order (Product + Shipping + Tax)",
+                      value: "4",
+                    },
                   ]}
                   value={commissionBase}
                   onChange={(value) => setCommissionBase(value)}
@@ -218,8 +223,8 @@ function InviteInfluencer() {
             </BlockStack>
           </BlockStack>
         </Card>
-      </BlockStack >
-    </Page >
+      </BlockStack>
+    </Page>
   );
 }
 

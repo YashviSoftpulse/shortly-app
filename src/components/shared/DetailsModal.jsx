@@ -140,7 +140,7 @@ function Details({
       )
     );
     const deleteResponse = await fetchData(
-      getApiURL("/delete_url_redirect"),
+      getApiURL("delete_url_redirect"),
       deleteData
     );
     const target =
@@ -172,7 +172,7 @@ function Details({
       formdata.append("qr_code", `qr=${generateRandomString(20)}`);
 
     const response = await fetchData(
-      getApiURL("/create_url_redirect"),
+      getApiURL("create_url_redirect"),
       formdata
     );
     setGenerateLoader(false);
@@ -369,8 +369,7 @@ function Details({
                       <Text as="h3">Custom URL</Text>
                       <Tooltip
                         content={`This custom URL, created with your store '${SHOP}', removes
-                       Shopify's predefined words like 'products,' 'pages,'
-                       'collection,`}
+                       Shopify's predefined words like 'products','pages'and 'collection`}
                       >
                         <Icon tone="base" source={InfoIcon} />
                       </Tooltip>
@@ -465,6 +464,7 @@ function Details({
                         variant="primary"
                         icon={ArrowDownIcon}
                         onClick={() => downloadQRCode()}
+                        disabled={!data?.plan_details?.features?.qr_code_create}
                       >
                         Download{" "}
                       </Button>

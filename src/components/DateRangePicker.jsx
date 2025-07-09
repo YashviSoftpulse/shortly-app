@@ -126,8 +126,7 @@ const DateRangePicker = ({ onDateRangeSelect, value: { start, end } }) => {
 
   const getButtonLabel = () => {
     if (
-      activeDateRange.period.since.toDateString() ===
-      activeDateRange.period.until.toDateString()
+      activeDateRange.period.since.toDateString() === activeDateRange.period.until.toDateString()
     ) {
       return `${formatDate(activeDateRange.period.since)}`;
     }
@@ -135,7 +134,7 @@ const DateRangePicker = ({ onDateRangeSelect, value: { start, end } }) => {
       activeDateRange.period.until
     )}`;
   };
-
+  
   return (
     <Box>
       <Popover

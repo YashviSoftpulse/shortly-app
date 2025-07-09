@@ -23,7 +23,6 @@ function Settings() {
       <Layout>
         <Layout.Section>
           <InlineGrid columns={2} gap={400}>
-
             <Card sectioned>
               <div
                 className="Polaris-InlineStack"
@@ -68,7 +67,7 @@ function Settings() {
                       </svg>
                     </span>
                     <Text variant="headingSm" as="h6">
-                      General Settings
+                      Influencer Dashboard
                     </Text>
                   </div>
                   <Text variant="bodySm" as="p" tone="subdued">
@@ -122,12 +121,12 @@ function Settings() {
                     </Text>
                   </div>
                   <Text variant="bodySm" as="p" tone="subdued">
-                    Customize email notifications to receive updates on your account status.
+                    Customize email notifications to receive updates on your
+                    account status.
                   </Text>
                 </BlockStack>
               </div>
             </Card>
-
           </InlineGrid>
         </Layout.Section>
       </Layout>
