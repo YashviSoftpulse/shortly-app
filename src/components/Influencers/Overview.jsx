@@ -409,7 +409,7 @@ function Overview({ selectedDates }) {
                       <InlineStack align="space-between">
                         <Text variant="bodyMd">Last Update</Text>
                         <Text variant="bodySm">
-                          {influencerInfo?.created_at || "-"}
+                          {moment(influencerInfo?.created_at).format("DD MMM YYYY") || "-"}
                         </Text>
                       </InlineStack>
 
@@ -568,10 +568,10 @@ function Overview({ selectedDates }) {
                                         {commissionOn}
                                       </IndexTable.Cell>
                                       <IndexTable.Cell>
-                                        {formatDate(commission?.created_at)}
+                                        {moment(formatDate(commission?.created_at)).format("DD MMM YYYY")}
                                       </IndexTable.Cell>
                                       <IndexTable.Cell>
-                                        {formatDate(commission?.from_date)}
+                                        {moment(formatDate(commission?.from_date)).format("DD MMM YYYY")}
                                       </IndexTable.Cell>
                                       <IndexTable.Cell>
                                         {formatDate(
@@ -606,7 +606,7 @@ function Overview({ selectedDates }) {
                               Total Commission
                             </Text>
                             <Text variant="bodyLg" fontWeight="bold">
-                              {formatNumber(
+                              {storeCurrency + formatNumber(
                                 influencerCommission?.total_commission
                               )}
                             </Text>

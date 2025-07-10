@@ -24,8 +24,14 @@ import {
   Banner,
   BlockStack,
   Bleed,
+  Box,
 } from "@shopify/polaris";
-import { DeleteIcon, EditIcon, ExchangeIcon } from "@shopify/polaris-icons";
+import {
+  DeleteIcon,
+  EditIcon,
+  ExchangeIcon,
+  ViewIcon,
+} from "@shopify/polaris-icons";
 import { fetchData, getApiURL } from "../action";
 import { useApiData } from "../components/ApiDataProvider";
 
@@ -332,29 +338,23 @@ function Influencers() {
             {cstatus.charAt(0).toUpperCase() + cstatus.slice(1).toLowerCase()}
           </Badge>
         </IndexTable.Cell>
-
         <IndexTable.Cell>{formatDate(applicationTime)}</IndexTable.Cell>
-
         <IndexTable.Cell>
-          <InlineStack align="end">
-            {cstatus === "pending" ? (
-              <Badge tone="warning">
-                {cstatus.charAt(0).toUpperCase() +
-                  cstatus.slice(1).toLowerCase()}
+          {cstatus === "pending" ? (
+            <Badge tone="warning">
+              {cstatus.charAt(0).toUpperCase() + cstatus.slice(1).toLowerCase()}
+            </Badge>
+          ) : (
+            status && (
+              <Badge tone={status === "active" ? "success" : "critical"}>
+                {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
               </Badge>
-            ) : (
-              status && (
-                <Badge tone={status === "active" ? "success" : "critical"}>
-                  {status.charAt(0).toUpperCase() +
-                    status.slice(1).toLowerCase()}
-                </Badge>
-              )
-            )}
-          </InlineStack>
+            )
+          )}
         </IndexTable.Cell>
 
         <IndexTable.Cell>
-          <InlineStack gap="200" align="end">
+          <InlineStack gap="200" align="center">
             {cstatus === "pending" && (
               <Tooltip content="Re-invite">
                 <Button
@@ -366,11 +366,22 @@ function Influencers() {
                 />
               </Tooltip>
             )}
+            <Tooltip content="View">
+              <Button
+                icon={ViewIcon}
+                onClick={() =>
+                  navigate(
+                    `/influencers/dashboard/${id}${window.location.search}`
+                  )
+                }
+                accessibilityLabel="View Influencer"
+              />
+            </Tooltip>
             <Tooltip content="Edit">
               <Button
                 icon={EditIcon}
                 onClick={() => handleEdit(id)}
-                accessibilityLabel="Edit influencer"
+                accessibilityLabel="Edit Influencer"
               />
             </Tooltip>
 
@@ -514,10 +525,10 @@ function Influencers() {
             )}
 
             {isLoading ? (
-              <div style={{ padding: "20px", textAlign: "center" }}>
+              <Box padding="400">
                 <SkeletonTabs count={4} fitted />
                 <SkeletonBodyText lines={5} />
-              </div>
+              </Box>
             ) : (
               <div className="maininfluncerlist">
                 {data?.plan_details?.name === "Free" ? (
@@ -562,12 +573,12 @@ function Influencers() {
                     }
                     onSelectionChange={handleSelectionChange}
                     headings={[
-                      { title: "Influencer Name", isSortable: true },
+                      { title: "Name", isSortable: true },
                       { title: "Commission" },
                       { title: "Cooperation Status" },
                       { title: "Application Time" },
-                      { title: "Status", alignment: "end" },
-                      { title: "Actions", alignment: "end" },
+                      { title: "Status" },
+                      { title: "Actions", alignment: "center" },
                     ]}
                     sortDirection={sortDirection}
                     sortColumnIndex={sortColumnIndex}

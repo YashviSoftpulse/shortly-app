@@ -47,6 +47,7 @@ function MyLinks({
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(LinksData);
   const [isExporting, setIsExporting] = useState(false);
+  const [storeCurrency, setStoreCurrency] = useState("");
   const limit = 10;
   const [Timer, setTimer] = useState(null);
   const [isExportModal, setIsExportModal] = useState(false);
@@ -88,6 +89,7 @@ function MyLinks({
         };
       });
       setLinkData(temp);
+      setStoreCurrency(response?.store_currency);
       if (response?.page?.previous) {
         setPreviousData(response?.page?.previous);
       } else {
@@ -382,6 +384,7 @@ function MyLinks({
         nextData={nextData}
         APIPath="redirect_list_V2"
         pageNumber={pageNumber}
+        storeCurrency={storeCurrency}
       />
       <Details 
         productsData={LinksData}

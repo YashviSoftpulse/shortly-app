@@ -13,7 +13,12 @@ import {
   Layout,
   Select,
 } from "@shopify/polaris";
-import { CheckIcon, ClipboardIcon, ExportIcon, ViewIcon } from "@shopify/polaris-icons";
+import {
+  CheckIcon,
+  ClipboardIcon,
+  ExportIcon,
+  ViewIcon,
+} from "@shopify/polaris-icons";
 import { useCallback, useEffect, useState } from "react";
 import { fetchData, getApiURL } from "../../action";
 import { useParams } from "react-router-dom";
@@ -21,7 +26,6 @@ import View from "../shared/ViewModal";
 import { formatNumber } from "../../utils";
 
 function Links({ selectedDates, setStateTab }) {
-
   const { id } = useParams();
   const urlParams = new URLSearchParams(window.location.search);
   const SHOP = urlParams.get("shop");
@@ -38,12 +42,12 @@ function Links({ selectedDates, setStateTab }) {
   const [totalLinksData, setTotalLinksData] = useState([]);
   const [viewModalActive, setViewModalActive] = useState(false);
   const [viewData, setViewData] = useState(null);
-  const [productName, setProductName] = useState('');
+  const [productName, setProductName] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [searchValue, setSearchValue] = useState("");
   const [copiedItems, setCopiedItems] = useState({});
-const [storeCurrency, setStoreCurrency] = useState(null);
+  const [storeCurrency, setStoreCurrency] = useState(null);
   const handleSelectChange = useCallback((value) => {
     setSelected(value);
   }, []);
@@ -62,20 +66,23 @@ const [storeCurrency, setStoreCurrency] = useState(null);
       .writeText(link)
       .then(() => {
         // Show checkmark icon immediately for better UX
-        setCopiedItems(prev => ({ ...prev, [itemId]: true }));
+        setCopiedItems((prev) => ({ ...prev, [itemId]: true }));
 
         // Show toast notification
         shopify.toast.show("Copied to Clipboard", { duration: 3000 });
 
         // Return to clipboard icon after 1.5 seconds (faster response)
         setTimeout(() => {
-          setCopiedItems(prev => ({ ...prev, [itemId]: false }));
+          setCopiedItems((prev) => ({ ...prev, [itemId]: false }));
         }, 1500);
       })
       .catch((err) => {
         console.error("Failed to copy: ", err);
         // Show error toast if copy fails
-        shopify.toast.show("Failed to copy to clipboard", { duration: 3000, isError: true });
+        shopify.toast.show("Failed to copy to clipboard", {
+          duration: 3000,
+          isError: true,
+        });
       });
   };
 
@@ -92,7 +99,7 @@ const [storeCurrency, setStoreCurrency] = useState(null);
 
   const showViewModal = (index, shopify_url) => {
     setViewData(index);
-    setProductName(shopify_url)
+    setProductName(shopify_url);
     setViewModalActive(true);
   };
 
@@ -136,24 +143,18 @@ const [storeCurrency, setStoreCurrency] = useState(null);
 
   useEffect(() => {
     const shouldFetch =
-      id ||
-      (!!searchValue || selected !== "1" || !!selectedDates);
-
+      id || !!searchValue || selected !== "1" || !!selectedDates;
     if (!shouldFetch) return;
-
     const delayDebounce = setTimeout(() => {
       const isFromIdChange = !!id;
       const query = isFromIdChange ? "" : searchValue;
       const applyReset = isFromIdChange;
-
       fetchInfluencers(1, query, selected, applyReset);
       setCurrentPage(1);
     }, 500);
-
     return () => clearTimeout(delayDebounce);
   }, [id, searchValue, selected, selectedDates]);
 
-  
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
@@ -210,13 +211,19 @@ const [storeCurrency, setStoreCurrency] = useState(null);
                             {label}
                           </Text>
                           <Text variant="bodyMd" fontWeight="bold">
-                            {key === "total_sales" ? storeCurrency + formatNumber(total) : formatNumber(total)}
+                            {key === "total_sales"
+                              ? storeCurrency + formatNumber(total)
+                              : formatNumber(total)}
                           </Text>
                         </InlineStack>
                         <BlockStack gap={200}>
                           <InlineStack align="space-between">
                             <Text>Short URL</Text>
-                            <Text>{key === "total_sales" ? storeCurrency + formatNumber(short) : formatNumber(short)}</Text>
+                            <Text>
+                              {key === "total_sales"
+                                ? storeCurrency + formatNumber(short)
+                                : formatNumber(short)}
+                            </Text>
                           </InlineStack>
                           {/* <InlineStack align="space-between">
                             <Text>Custom URL</Text>
@@ -224,7 +231,11 @@ const [storeCurrency, setStoreCurrency] = useState(null);
                           </InlineStack> */}
                           <InlineStack align="space-between">
                             <Text>QR</Text>
-                            <Text>{key === "total_sales" ? storeCurrency + formatNumber(qr) : formatNumber(qr)}</Text>
+                            <Text>
+                              {key === "total_sales"
+                                ? storeCurrency + formatNumber(qr)
+                                : formatNumber(qr)}
+                            </Text>
                           </InlineStack>
                         </BlockStack>
                       </BlockStack>
@@ -274,11 +285,11 @@ const [storeCurrency, setStoreCurrency] = useState(null);
                       headings={[
                         { title: "Title" },
                         { title: "Shopify URL" },
-                        { title: "Clicks", alignment: "end" },
-                        { title: "Add to Cart", alignment: "end" },
-                        { title: "Checkouts", alignment: "end" },
-                        { title: "Sales", alignment: "end" },
-                        { title: "Actions", alignment: "end" },
+                        { title: "Clicks" },
+                        { title: "Add to Cart" },
+                        { title: "Checkouts" },
+                        { title: "Sales" },
+                        { title: "Actions", alignment: "center" },
                       ]}
                       pagination={{
                         hasPrevious: currentPage > 1,
@@ -291,93 +302,129 @@ const [storeCurrency, setStoreCurrency] = useState(null);
                     >
                       {isTableLoading
                         ? [...Array(5)].map((_, index) => (
-                          <IndexTable.Row
-                            id={`skeleton-${index}`}
-                            key={`skeleton-${index}`}
-                            position={index}
-                          >
-                            {Array(6)
-                              .fill(null)
-                              .map((_, idx) => (
-                                <IndexTable.Cell key={idx}>
-                                  <SkeletonBodyText lines={1} />
-                                </IndexTable.Cell>
-                              ))}
-                          </IndexTable.Row>
-                        ))
-                        : influencer?.map((item, index) => {
-                          return (
                             <IndexTable.Row
-                              id={item.id}
-                              key={item.id}
+                              id={`skeleton-${index}`}
+                              key={`skeleton-${index}`}
                               position={index}
                             >
-                              <IndexTable.Cell>{item.title}</IndexTable.Cell>
-                              <IndexTable.Cell>
-                                <Button
-                                  onClick={() =>
-                                    window.open(
-                                      `https://${SHOP}${item?.shopify_url}`
-                                    )
-                                  }
-                                  variant="plain"
-                                >
-                                  {item.shopify_url}
-                                </Button>
-                              </IndexTable.Cell>
-                              <IndexTable.Cell>
-                                <InlineStack align="end">
-                                  {formatNumber(item.anlytics.total.total_clicks) || 0}
-                                </InlineStack>
-                              </IndexTable.Cell>
-                              <IndexTable.Cell>
-                                <InlineStack align="end">
-                                  {formatNumber(item.anlytics.total.total_add_to_cart) || 0}
-                                </InlineStack>
-                              </IndexTable.Cell>
-                              <IndexTable.Cell>
-                                <InlineStack align="end">
-                                  {formatNumber(item.anlytics.total.total_checkout) || 0}
-                                </InlineStack>
-                              </IndexTable.Cell>
-                              <IndexTable.Cell>
-                                <InlineStack align="end">
-                                  {storeCurrency +formatNumber(item.anlytics.total.total_sales) || 0}
-                                </InlineStack>
-                              </IndexTable.Cell>
-                              <IndexTable.Cell>
-                                <InlineStack gap="200" align="end">
-                                  <Tooltip content="View Details">
-                                    <Button
-                                      icon={ViewIcon}
-                                      onClick={() => showViewModal(index, item.shopify_url)}
-                                      accessibilityLabel="View Details"
-                                    />
-                                  </Tooltip>
-                                  <Tooltip content={copiedItems[item.id] ? "Copied!" : "Copy"}>
-                                    <Button
-                                      icon={copiedItems[item.id] ? CheckIcon : ClipboardIcon}
-                                      onClick={() =>
-                                        handleCopy(
-                                          `https://${SHOP}${item?.shopify_url}`,
-                                          item.id
-                                        )
-                                      }
-                                      accessibilityLabel="Copy Link"
-                                    />
-                                  </Tooltip>
-                                  <Tooltip content="Export">
-                                    <Button
-                                      icon={ExportIcon}
-                                      onClick={() => handleExport(item)}
-                                      accessibilityLabel="Export Link"
-                                    />
-                                  </Tooltip>
-                                </InlineStack>
-                              </IndexTable.Cell>
+                              {Array(6)
+                                .fill(null)
+                                .map((_, idx) => (
+                                  <IndexTable.Cell key={idx}>
+                                    <SkeletonBodyText lines={1} />
+                                  </IndexTable.Cell>
+                                ))}
                             </IndexTable.Row>
-                          );
-                        })}
+                          ))
+                        : influencer?.map((item, index) => {
+                            const params = new URLSearchParams();
+
+                            if (item.id) {
+                              params.append("refby", item.id);
+                            }
+
+                            let utmObj = {};
+                            if (item.utm_datas) {
+                              if (typeof item.utm_datas === "string") {
+                                try {
+                                  utmObj = JSON.parse(item.utm_datas);
+                                } catch (e) {
+                                  console.error("Invalid JSON in utm_datas");
+                                }
+                              } else if (typeof item.utm_datas === "object") {
+                                utmObj = item.utm_datas;
+                              }
+                            }
+
+                            if (utmObj && typeof utmObj === "object") {
+                              Object.entries(utmObj).forEach(([key, value]) => {
+                                if (value) params.append(key, value);
+                              });
+                            }
+                            const isShortUrl = `http://srtr.me/${ item?.custom_url}?${params.toString()}`;
+
+                            return (
+                              <IndexTable.Row
+                                id={item.id}
+                                key={item.id}
+                                position={index}
+                              >
+                                <IndexTable.Cell>{item.title}</IndexTable.Cell>
+                                <IndexTable.Cell>
+                                  <Button
+                                    onClick={() =>
+                                      window.open(
+                                        `https://${SHOP}${item?.shopify_url}`
+                                      )
+                                    }
+                                    variant="plain"
+                                  >
+                                    {item.shopify_url}
+                                  </Button>
+                                </IndexTable.Cell>
+                                <IndexTable.Cell>
+                                  {formatNumber(
+                                    item.anlytics.total.total_clicks
+                                  ) || 0}
+                                </IndexTable.Cell>
+                                <IndexTable.Cell>
+                                  {formatNumber(
+                                    item.anlytics.total.total_add_to_cart
+                                  ) || 0}
+                                </IndexTable.Cell>
+                                <IndexTable.Cell>
+                                  {formatNumber(
+                                    item.anlytics.total.total_checkout
+                                  ) || 0}
+                                </IndexTable.Cell>
+                                <IndexTable.Cell>
+                                  {storeCurrency +
+                                    formatNumber(
+                                      item.anlytics.total.total_sales
+                                    ) || 0}
+                                </IndexTable.Cell>
+                                <IndexTable.Cell>
+                                  <InlineStack gap="200" align="end">
+                                    <Tooltip content="View Details">
+                                      <Button
+                                        icon={ViewIcon}
+                                        onClick={() =>
+                                          showViewModal(index, item.shopify_url)
+                                        }
+                                        accessibilityLabel="View Details"
+                                      />
+                                    </Tooltip>
+                                    <Tooltip
+                                      content={
+                                        copiedItems[item.id]
+                                          ? "Copied!"
+                                          : "Copy"
+                                      }
+                                    >
+                                      <Button
+                                        icon={
+                                          copiedItems[item.id]
+                                            ? CheckIcon
+                                            : ClipboardIcon
+                                        }
+                                        onClick={() =>
+                                          handleCopy(isShortUrl, item.id)
+                                        }
+                                        accessibilityLabel="Copy Link"
+                                      />
+                                    </Tooltip>
+                                    <Tooltip content="Export">
+                                      <Button
+                                        icon={ExportIcon}
+                                        onClick={() => handleExport(item)}
+                                        accessibilityLabel="Export Link"
+                                      />
+                                    </Tooltip>
+                                  </InlineStack>
+                                </IndexTable.Cell>
+                              </IndexTable.Row>
+                            );
+                          })}
                     </IndexTable>
                   </Bleed>
                 </BlockStack>

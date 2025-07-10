@@ -422,7 +422,7 @@ const downloadQRCode = () => {
                   </Text>
 
                   <Text as="h4" variant="headingLg">
-                    {storeCurrency === undefined ? formatNumber(data[id]?.anlytics?.total?.total_sales) : storeCurrency + formatNumber(data[id]?.anlytics?.total?.total_sales || 0)}
+                    {storeCurrency === undefined ? formatNumber(data[id]?.anlytics?.total?.total_sales) : storeCurrency + " "+ formatNumber(data[id]?.anlytics?.total?.total_sales || 0)}
                   </Text>
                 </div>
               </Card>

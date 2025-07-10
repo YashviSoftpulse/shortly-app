@@ -1286,7 +1286,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                             checkAPIForAnalytics?.product_analytics?.total
                               ?.total_sales || 0
                           )
-                        : storeCurrency +
+                        : storeCurrency + " " +
                           formatNumber(
                             checkAPIForAnalytics?.product_analytics?.total
                               ?.total_sales || 0
@@ -1345,7 +1345,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                             checkAPIForAnalytics?.product_analytics
                               ?.short_url_anlytics?.total_sales || 0
                           )
-                        : storeCurrency +
+                        : storeCurrency + " " +
                           formatNumber(
                             checkAPIForAnalytics?.product_analytics
                               ?.short_url_anlytics?.total_sales || 0
@@ -1361,7 +1361,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                               productAnalytics?.product_analytics
                                 ?.custom_url_anlytics?.total_sales || 0
                             )
-                          : storeCurrency +
+                          : storeCurrency +" " +
                             formatNumber(
                               productAnalytics?.product_analytics
                                 ?.custom_url_anlytics?.total_sales || 0
@@ -1377,7 +1377,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                             checkAPIForAnalytics?.product_analytics
                               ?.qr_code_anlytics?.total_sales || 0
                           )
-                        : storeCurrency +
+                        : storeCurrency + " " +
                           formatNumber(
                             checkAPIForAnalytics?.product_analytics
                               ?.qr_code_anlytics?.total_sales || 0

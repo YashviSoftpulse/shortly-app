@@ -4,6 +4,7 @@ import {
   useState,
   forwardRef,
   useImperativeHandle,
+  useRef,
 } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -29,10 +30,21 @@ import {
   DropZone,
   Spinner,
   Pagination,
+  Divider,
+  InlineGrid,
+  Popover,
+  DatePicker,
+  Icon,
 } from "@shopify/polaris";
 import { fetchData, getApiURL } from "../../action";
 import { formatDate, formatNumber } from "../../utils";
-import { DeleteIcon, EditIcon, InfoIcon } from "@shopify/polaris-icons";
+import {
+  CalendarIcon,
+  DeleteIcon,
+  EditIcon,
+  InfoIcon,
+} from "@shopify/polaris-icons";
+import moment from "moment";
 
 // function Payouts() {
 const Payouts = forwardRef((props, ref) => {
@@ -44,7 +56,7 @@ const Payouts = forwardRef((props, ref) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchValue, setSearchValue] = useState("");
-  const [selectedPayoutMethod, setSelectedPayoutMethod] = useState("1");
+  const [selectedPayoutMethod, setSelectedPayoutMethod] = useState("3");
   const [sortOrder, setSortOrder] = useState("DESC");
   const [influencersPayoutsTotal, setInfluencersPayoutsTotal] = useState([]);
   const [storeCurrency, setStoreCurrency] = useState("Rs.");
@@ -71,9 +83,11 @@ const Payouts = forwardRef((props, ref) => {
   const [influencerInfo, setInfluencerInfo] = useState(null);
   const [loadingIcons, setLoadingIcons] = useState({});
   const [editFiles, setEditFiles] = useState([]);
-  const [pandingPayouts, setPendingPayouts] = useState(null);
+  const [pandingPayouts, setPendingPayouts] = useState(0);
+  const [visible, setVisible] = useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  const isFirstRun = useRef(true);
 
   // const payoutMethodOptions = [
   //   { label: "All", value: "0" },
@@ -81,6 +95,28 @@ const Payouts = forwardRef((props, ref) => {
   //   { label: "PayPal", value: "paypal" },
   //   { label: "Manual Paid", value: "manual" },
   // ];
+
+  function handleInputValueChange() {
+    console.log("handleInputValueChange");
+  }
+  function handleOnClose({ relatedTarget }) {
+    setVisible(false);
+  }
+  // function handleMonthChange(month, year) {
+  //   setDate({ month, year });
+  // }
+  // function handleDateSelection({ end: newSelectedDate }) {
+  //   setSelectedDate(newSelectedDate);
+  //   setVisible(false);
+  // }
+  // useEffect(() => {
+  //   if (selectedDate) {
+  //     setDate({
+  //       month: selectedDate.getMonth(),
+  //       year: selectedDate.getFullYear(),
+  //     });
+  //   }
+  // }, [selectedDate]);
 
   const payoutStatusOptions = [
     { label: "Pending", value: "1" },
@@ -99,7 +135,7 @@ const Payouts = forwardRef((props, ref) => {
   const fetchInfluencersPayouts = async (
     page = 1,
     search = "",
-    payoutMethod = "1",
+    payoutMethod = "3",
     order = "DESC",
     initial = false
   ) => {
@@ -114,19 +150,17 @@ const Payouts = forwardRef((props, ref) => {
     formData.append("payoutMethod", payoutMethod);
     formData.append("uid", id);
 
-    if (payoutMethod !== "1") formData.append("method", payoutMethod);
-
+    if (payoutMethod !== "3") formData.append("method", payoutMethod);
     try {
       const response = await fetchData(getApiURL("get-payouts"), formData);
-
       if (response?.status === true) {
         const payouts = response?.records || [];
-
         setInfluencersPayouts(payouts);
         setInfluencersPayoutsTotal(response.totals || []);
         setTotalPages(response?.pagination?.total_pages || 1);
         setCurrentPage(response?.pagination?.current_page || 1);
         setPendingPayouts(response?.pending_commissions);
+        localStorage.setItem("pandingPayouts", response?.pending_commissions);
         setStoreCurrency(response?.store_currency);
         // Cache payouts by UID
         const map = {};
@@ -147,11 +181,31 @@ const Payouts = forwardRef((props, ref) => {
     }
   };
 
+  useEffect(() => {
+    if (isFirstRun.current) {
+      isFirstRun.current = false;
+
+      return;
+    }
+    const handler = setTimeout(() => {
+      fetchInfluencersPayouts(
+        1,
+        searchValue,
+        selectedPayoutMethod,
+        sortOrder,
+        false
+      );
+    }, 700);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchValue, selectedPayoutMethod, sortOrder]);
+
   const handleSearchChange = useCallback(
     (value) => {
       setSearchValue(value);
       setCurrentPage(1);
-      fetchInfluencersPayouts(1, value, selectedPayoutMethod, sortOrder, false);
     },
     [selectedPayoutMethod, sortOrder]
   );
@@ -195,16 +249,13 @@ const Payouts = forwardRef((props, ref) => {
 
   const fetchPayoutDetails = async (uid, key) => {
     setLoading(true);
-
     let payoutInfo = payoutDetailsMap[uid];
 
     // If not cached, fallback to API call
     if (!payoutInfo) {
       const formData = new FormData();
       formData.append("uid", id);
-
       const response = await fetchData(getApiURL(`get-payouts`), formData);
-
       if (response?.status && Array.isArray(response?.records)) {
         payoutInfo = response.records.find((item) => item.uid === uid);
         setPayoutDetailsMap((prev) => ({
@@ -220,7 +271,6 @@ const Payouts = forwardRef((props, ref) => {
         amount = amount.split(".")[0];
         amount = amount.replace(/,/g, "");
       }
-
       const statusMap = {
         pending: 1,
         processing: 2,
@@ -228,11 +278,9 @@ const Payouts = forwardRef((props, ref) => {
         failed: 4,
         cancelled: 5,
       };
-
       const statusValue = String(
         statusMap[payoutInfo?.status?.toLowerCase()] || 1
       );
-
       setEditFormData({
         processed_by: payoutInfo?.processed_by || "",
         amount: amount || "",
@@ -253,14 +301,12 @@ const Payouts = forwardRef((props, ref) => {
       } else {
         setEditFiles([]);
       }
-
       if (key === "info") {
         setInfluencerInfo(payoutInfo);
       } else {
         setEditModalActive(true);
       }
     }
-
     setLoading(false);
   };
 
@@ -271,9 +317,7 @@ const Payouts = forwardRef((props, ref) => {
 
   const infoPayout = async (uid) => {
     setLoadingIcons((prev) => ({ ...prev, [uid]: true }));
-
     await fetchPayoutDetails(uid, "info");
-
     setLoadingIcons((prev) => ({ ...prev, [uid]: false }));
     openModal(true);
   };
@@ -296,7 +340,6 @@ const Payouts = forwardRef((props, ref) => {
     }
     setErrors(newErrors);
     if (hasError) return;
-
     const formData = new FormData();
     formData.append("uid", programToEdit);
     formData.append("amount", editFormData?.amount);
@@ -356,8 +399,10 @@ const Payouts = forwardRef((props, ref) => {
       formData.append("type", "delete");
 
       const response = await fetchData(getApiURL("update-payout"), formData);
-
       if (response?.status === true) {
+        setIsDeleting(false);
+        setDeleteModalActive(false);
+        setProgramToDelete(null);
         const updatedInfluencers = influencerPayouts.filter(
           (inf) => inf.uid !== programToDelete
         );
@@ -369,7 +414,6 @@ const Payouts = forwardRef((props, ref) => {
           duration: 3000,
         });
       }
-
       setIsDeleting(false);
       setDeleteModalActive(false);
       setProgramToDelete(null);
@@ -377,7 +421,6 @@ const Payouts = forwardRef((props, ref) => {
   };
 
   useEffect(() => {
-   
     fetchInfluencersPayouts(
       1,
       searchValue,
@@ -387,9 +430,24 @@ const Payouts = forwardRef((props, ref) => {
     );
   }, [id]);
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      fetchInfluencersPayouts(
+        1,
+        searchValue,
+        selectedPayoutMethod,
+        sortOrder,
+        false
+      );
+    }, 700);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchValue, selectedPayoutMethod, sortOrder]);
+
   const getAmountByMethod = () => {
     const entry = influencersPayoutsTotal.find((item) => item.total_amount);
-    console.log("influencersPayoutsTotal", influencersPayoutsTotal);
     return entry ? entry.total_amount : "0.00";
   };
 
@@ -410,7 +468,6 @@ const Payouts = forwardRef((props, ref) => {
       setLogoError("No file selected. Please upload a PNG or JPEG image.");
       return;
     }
-
     const isValid = [
       "image/jpeg",
       "image/png",
@@ -438,7 +495,6 @@ const Payouts = forwardRef((props, ref) => {
 
   const showUploadedFiles = files.length > 0 || editFiles.length > 0;
   const finalFiles = files.length > 0 ? files : editFiles;
-
   const uploadedFiles = showUploadedFiles ? (
     <div style={{ padding: "15px" }}>
       <BlockStack>
@@ -485,13 +541,15 @@ const Payouts = forwardRef((props, ref) => {
   if (isInitialLoading) {
     return (
       <BlockStack gap="400">
-        {/* <InlineGrid gap="200" columns={1}>
+        <InlineGrid gap="200" columns={1}>
           {[...Array(1)].map((_, idx) => (
             <div className="PayoutManual">
-              <Card key={idx}><SkeletonBodyText /></Card>
+              <Card key={idx}>
+                <SkeletonBodyText />
+              </Card>
             </div>
           ))}
-        </InlineGrid> */}
+        </InlineGrid>
         <Card>
           <SkeletonBodyText lines={10} />
         </Card>
@@ -522,6 +580,36 @@ const Payouts = forwardRef((props, ref) => {
             ))}
           </InlineGrid>
         </Layout.Section> */}
+        <Layout.Section>
+          <InlineGrid columns={3} gap={400}>
+            <Card>
+              <BlockStack gap={200}>
+                <Text
+                  as="p"
+                  fontWeight="bold"
+                  tone="subdued"
+                  variant="bodyMd"
+                  text-decoration="dotted"
+                >
+                  Total Manual Paid
+                </Text>
+                <Text as="h2" tone="base" variant="bodyLg" fontWeight="bold">
+                  {storeCurrency} {formatNumber(getAmountByMethod())}
+                </Text>
+              </BlockStack>
+            </Card>
+            <Card>
+              <BlockStack gap={200}>
+                <Text as="p" fontWeight="bold" tone="subdued" variant="bodyMd">
+                  Pending Commissions
+                </Text>
+                <Text as="h2" tone="base" variant="bodyLg" fontWeight="bold">
+                  {storeCurrency} {formatNumber(pandingPayouts)}
+                </Text>
+              </BlockStack>
+            </Card>
+          </InlineGrid>
+        </Layout.Section>
 
         <Layout.Section>
           <Card>
@@ -565,11 +653,11 @@ const Payouts = forwardRef((props, ref) => {
                     itemCount={influencerPayouts?.length}
                     selectable={false}
                     headings={[
-                      { title: "Influencer Name" },
-                      { title: "Amount", alignment: "end" },
-                      { title: "Status", alignment: "end" },
-                      { title: "Payment Date", alignment: "end" },
-                      { title: "Actions", alignment: "end" },
+                      { title: "Name" },
+                      { title: "Amount" },
+                      // { title: "Status" },
+                      { title: "Payment Date" },
+                      { title: "Action", alignment: "end" },
                     ]}
                     emptyState={
                       <EmptySearchResult
@@ -578,7 +666,13 @@ const Payouts = forwardRef((props, ref) => {
                         withIllustration
                       />
                     }
-                    pagination={false}
+                    pagination={{
+                      hasNext: currentPage < totalPages,
+                      hasPrevious: currentPage > 1,
+                      onNext: () => handlePageChange(currentPage + 1),
+                      onPrevious: () => handlePageChange(currentPage - 1),
+                      label: `Page ${currentPage} of ${totalPages}`,
+                    }}
                   >
                     {influencerPayouts.map((item, index) => (
                       <IndexTable.Row
@@ -590,27 +684,20 @@ const Payouts = forwardRef((props, ref) => {
                           {item.influencer_name || "-"}
                         </IndexTable.Cell>
                         <IndexTable.Cell>
-                          <InlineStack align="end">
-                            {storeCurrency}{" "}
-                            {formatNumber(item.amount) || "0.00"}
-                          </InlineStack>
+                          {storeCurrency} {formatNumber(item.amount) || "0.00"}
                         </IndexTable.Cell>
-
+                        {/* <IndexTable.Cell>
+                          <Badge tone={statusToneMap[item.status]}>
+                            {typeof item.status === "string"
+                              ? item.status.charAt(0).toUpperCase() +
+                                item.status.slice(1).toLowerCase()
+                              : ""}
+                          </Badge>
+                        </IndexTable.Cell> */}
                         <IndexTable.Cell>
-                          <InlineStack align="end">
-                            <Badge tone={statusToneMap[item.status]}>
-                              {typeof item.status === "string"
-                                ? item.status.charAt(0).toUpperCase() +
-                                  item.status.slice(1).toLowerCase()
-                                : ""}
-                            </Badge>
-                          </InlineStack>
-                        </IndexTable.Cell>
-
-                        <IndexTable.Cell>
-                          <InlineStack align="end">
-                            {formatDate(item.payout_date || "-")}
-                          </InlineStack>
+                          {moment(formatDate(item.payout_date || "-")).format(
+                            "DD MMM YYYY"
+                          )}
                         </IndexTable.Cell>
 
                         <IndexTable.Cell>
@@ -638,21 +725,23 @@ const Payouts = forwardRef((props, ref) => {
                                 />
                               </Tooltip>
                             )}
-                            <Tooltip content="Delete">
-                              <Button
-                                icon={DeleteIcon}
-                                onClick={() => handleDelete(item.uid)}
-                                tone="critical"
-                                accessibilityLabel="Delete Payout"
-                              />
-                            </Tooltip>
+                            {/* {item.status !== "completed" && (
+                              <Tooltip content="Delete">
+                                <Button
+                                  icon={DeleteIcon}
+                                  onClick={() => handleDelete(item.uid)}
+                                  tone="critical"
+                                  accessibilityLabel="Delete Payout"
+                                />
+                              </Tooltip>
+                            )} */}
                           </InlineStack>
                         </IndexTable.Cell>
                       </IndexTable.Row>
                     ))}
                   </IndexTable>
 
-                  {influencerPayouts?.length !== 0 && (
+                  {/* {influencerPayouts?.length !== 0 && (
                     <>
                       <Box
                         paddingInline="300"
@@ -662,14 +751,15 @@ const Payouts = forwardRef((props, ref) => {
                         borderTopWidth="1"
                       >
                         <InlineStack align="space-between" blockAlign="center">
-                          <Text variant="headingMd" tone="base">
+                          <Text variant="headingSm" tone="base">
                             Total Manual Paid
                           </Text>
-                           <Text as="h4" variant="headingLg">
+                          <Text variant="headingMd" tone="base">
                             {storeCurrency} {formatNumber(getAmountByMethod())}
                           </Text>
                         </InlineStack>
                       </Box>
+                      <Divider />
                       <Box
                         paddingInline="300"
                         padding={200}
@@ -678,10 +768,10 @@ const Payouts = forwardRef((props, ref) => {
                         borderTopWidth="1"
                       >
                         <InlineStack align="space-between" blockAlign="center">
-                          <Text variant="headingMd" tone="base">
+                          <Text variant="headingSm" tone="base">
                             Pending Commissions
                           </Text>
-                         <Text as="h4" variant="headingLg">
+                          <Text variant="headingMd" tone="base">
                             {storeCurrency}{" "}
                             {formatNumber(pandingPayouts) || 0.0}
                           </Text>
@@ -700,7 +790,7 @@ const Payouts = forwardRef((props, ref) => {
                         </InlineStack>
                       </Box>
                     </>
-                  )}
+                  )} */}
                 </Bleed>
               )}
             </BlockStack>
@@ -842,15 +932,38 @@ const Payouts = forwardRef((props, ref) => {
                   min={0}
                   error={errors.amount}
                 />
-                <div className="Polaris-TextField__Input inputDate">
-                  <TextField
-                    label="Payout Date"
-                    type="date"
-                    value={editFormData.payout_date}
-                    // disabled={true}
-                    // onChange={(value) => setEditFormData({ ...editFormData, payout_date: value })}
-                  />
-                </div>
+                <Popover
+                  active={visible}
+                  autofocusTarget="none"
+                  preferredAlignment="left"
+                  fullWidth
+                  preferInputActivator={false}
+                  preferredPosition="below"
+                  preventCloseOnChildOverlayClick
+                  onClose={handleOnClose}
+                  activator={
+                    <TextField
+                      role="combobox"
+                      label={"Payout Date"}
+                      suffix={<Icon source={CalendarIcon} />}
+                      value={moment(editFormData.payout_date).format(
+                        "DD MMM YYYY"
+                      )}
+                      // onFocus={() => setVisible(true)}
+                      // onChange={handleInputValueChange}
+
+                      autoComplete="off"
+                    />
+                  }
+                >
+                  {/* <DatePicker
+                    month={month}
+                    year={year}
+                    selected={selectedDate}
+                    onMonthChange={handleMonthChange}
+                    onChange={handleDateSelection}
+                  /> */}
+                </Popover>
               </FormLayout.Group>
               {/* <Select
               label="Payout Method"
@@ -908,7 +1021,9 @@ const Payouts = forwardRef((props, ref) => {
         secondaryActions={[
           {
             content: "Cancel",
-            onAction: () => setDeleteModalActive(false),
+            onAction: () => {
+              setDeleteModalActive(false);
+            },
           },
         ]}
       >

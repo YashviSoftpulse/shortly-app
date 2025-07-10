@@ -423,3 +423,23 @@ input:checked+.influencerUpdateslider:before {
   overflow: unset;
   z-index: unset;
 }
+
+
+.PayoutManual {
+  max-width: 25%;
+}
+
+
+.inputDate>div {
+  width: 100%;
+}
+
+.inputDate {
+  gap: 20px;
+  padding: unset;
+}
+
+.inputDate input[type="date"] {
+  width: 100%;
+  display: inline;
+}

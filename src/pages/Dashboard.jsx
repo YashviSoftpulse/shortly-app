@@ -61,6 +61,7 @@ function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState([]);
   const [htmlContent, setHtmlContent] = useState("");
+  const [storeCurrency, setStoreCurrency] = useState();
   const navigate = useNavigate();
 
   const { data, loading, error } = useApiData();
@@ -86,7 +87,8 @@ function Dashboard() {
     setIsLoading(true);
     const response = await fetchData(getApiURL("analytics"), formdata);
     if (response?.status === true) {
-      setVisitorAnalytics(response.data);
+      setVisitorAnalytics(response?.data);
+      setStoreCurrency(response?.store_currency);
     }
     setIsLoading(false);
   };
@@ -598,7 +600,7 @@ function Dashboard() {
                   </Text>
 
                   <Text as="h4" variant="headingLg">
-                    {formatNumber(vistorAnalytics?.total_sales)}
+                    {storeCurrency + formatNumber(vistorAnalytics?.total_sales)}
                   </Text>
                 </BlockStack>
               </div>

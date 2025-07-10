@@ -221,6 +221,7 @@ const Listing = () => {
       return false;
     }
   };
+
   useEffect(() => {
     setValidationErrors({
       title: "",
