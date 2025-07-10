@@ -29,11 +29,8 @@ import {
   Thumbnail,
   DropZone,
   Spinner,
-  Pagination,
-  Divider,
   InlineGrid,
   Popover,
-  DatePicker,
   Icon,
 } from "@shopify/polaris";
 import { fetchData, getApiURL } from "../../action";
@@ -84,40 +81,11 @@ const Payouts = forwardRef((props, ref) => {
   const [loadingIcons, setLoadingIcons] = useState({});
   const [editFiles, setEditFiles] = useState([]);
   const [pandingPayouts, setPendingPayouts] = useState(0);
+  const [payoutDetailsMap, setPayoutDetailsMap] = useState({});
   const [visible, setVisible] = useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
   const isFirstRun = useRef(true);
-
-  // const payoutMethodOptions = [
-  //   { label: "All", value: "0" },
-  //   { label: "Bank Transfer", value: "bank_transfer" },
-  //   { label: "PayPal", value: "paypal" },
-  //   { label: "Manual Paid", value: "manual" },
-  // ];
-
-  function handleInputValueChange() {
-    console.log("handleInputValueChange");
-  }
-  function handleOnClose({ relatedTarget }) {
-    setVisible(false);
-  }
-  // function handleMonthChange(month, year) {
-  //   setDate({ month, year });
-  // }
-  // function handleDateSelection({ end: newSelectedDate }) {
-  //   setSelectedDate(newSelectedDate);
-  //   setVisible(false);
-  // }
-  // useEffect(() => {
-  //   if (selectedDate) {
-  //     setDate({
-  //       month: selectedDate.getMonth(),
-  //       year: selectedDate.getFullYear(),
-  //     });
-  //   }
-  // }, [selectedDate]);
-
   const payoutStatusOptions = [
     { label: "Pending", value: "1" },
     { label: "Processing", value: "2" },
@@ -125,12 +93,15 @@ const Payouts = forwardRef((props, ref) => {
     { label: "Failed", value: "4" },
     { label: "Cancelled", value: "5" },
   ];
-  const [payoutDetailsMap, setPayoutDetailsMap] = useState({});
 
   const sortOrderOptions = [
     { label: "Descending", value: "DESC" },
     { label: "Ascending", value: "ASC" },
   ];
+
+  function handleOnClose({ relatedTarget }) {
+    setVisible(false);
+  }
 
   const fetchInfluencersPayouts = async (
     page = 1,
@@ -182,25 +153,24 @@ const Payouts = forwardRef((props, ref) => {
   };
 
   useEffect(() => {
-    if (isFirstRun.current) {
-      isFirstRun.current = false;
+    const isInitial = isFirstRun.current;
+    if (isInitial) isFirstRun.current = false;
 
-      return;
-    }
-    const handler = setTimeout(() => {
-      fetchInfluencersPayouts(
-        1,
-        searchValue,
-        selectedPayoutMethod,
-        sortOrder,
-        false
-      );
-    }, 700);
+    const handler = setTimeout(
+      () => {
+        fetchInfluencersPayouts(
+          currentPage,
+          searchValue,
+          selectedPayoutMethod,
+          sortOrder,
+          isInitial
+        );
+      },
+      isInitial ? 0 : 700
+    );
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchValue, selectedPayoutMethod, sortOrder]);
+    return () => clearTimeout(handler);
+  }, [id, currentPage, searchValue, selectedPayoutMethod, sortOrder]);
 
   const handleSearchChange = useCallback(
     (value) => {
@@ -210,42 +180,16 @@ const Payouts = forwardRef((props, ref) => {
     [selectedPayoutMethod, sortOrder]
   );
 
-  // const handlePayoutChange = useCallback(
-  //   (value) => {
-  //     setSelectedPayoutMethod(value);
-  //     setCurrentPage(1);
-  //     fetchInfluencersPayouts(1, searchValue, value, sortOrder, false);
-  //   },
-  //   [searchValue, sortOrder]
-  // );
-
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
-      fetchInfluencersPayouts(
-        newPage,
-        searchValue,
-        selectedPayoutMethod,
-        sortOrder,
-        false
-      );
     }
   };
 
-  const handleSortOrderChange = useCallback(
-    (value) => {
-      setSortOrder(value);
-      setCurrentPage(1);
-      fetchInfluencersPayouts(
-        1,
-        searchValue,
-        selectedPayoutMethod,
-        value,
-        false
-      );
-    },
-    [searchValue, selectedPayoutMethod]
-  );
+  const handleSortOrderChange = useCallback((value) => {
+    setSortOrder(value);
+    setCurrentPage(1);
+  }, []);
 
   const fetchPayoutDetails = async (uid, key) => {
     setLoading(true);
@@ -420,32 +364,6 @@ const Payouts = forwardRef((props, ref) => {
     }
   };
 
-  useEffect(() => {
-    fetchInfluencersPayouts(
-      1,
-      searchValue,
-      selectedPayoutMethod,
-      sortOrder,
-      true
-    );
-  }, [id]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      fetchInfluencersPayouts(
-        1,
-        searchValue,
-        selectedPayoutMethod,
-        sortOrder,
-        false
-      );
-    }, 700);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchValue, selectedPayoutMethod, sortOrder]);
-
   const getAmountByMethod = () => {
     const entry = influencersPayoutsTotal.find((item) => item.total_amount);
     return entry ? entry.total_amount : "0.00";
@@ -488,10 +406,6 @@ const Payouts = forwardRef((props, ref) => {
     setEditFiles([]);
     setFiles([file]);
   }, []);
-
-  const fileUpload = !files.length && (
-    <DropZone.FileUpload actionHint="Only PNG and JPEG files under 2MB are accepted." />
-  );
 
   const showUploadedFiles = files.length > 0 || editFiles.length > 0;
   const finalFiles = files.length > 0 ? files : editFiles;
@@ -541,13 +455,11 @@ const Payouts = forwardRef((props, ref) => {
   if (isInitialLoading) {
     return (
       <BlockStack gap="400">
-        <InlineGrid gap="200" columns={1}>
-          {[...Array(1)].map((_, idx) => (
-            <div className="PayoutManual">
-              <Card key={idx}>
-                <SkeletonBodyText />
-              </Card>
-            </div>
+        <InlineGrid gap="200" columns={3}>
+          {[...Array(2)].map((_, idx) => (
+            <Card key={idx}>
+              <SkeletonBodyText />
+            </Card>
           ))}
         </InlineGrid>
         <Card>
@@ -560,26 +472,6 @@ const Payouts = forwardRef((props, ref) => {
   return (
     <>
       <Layout>
-        {/* <Layout.Section>
-          <InlineGrid columns={1} gap={400}>
-            {[
-               { label: "PayPal Payouts", method: "paypal" },
-              { label: "Manual Paid", method: "manual" },
-              { label: "Bank Transfer", method: "bank_transfer" },
-            ].map(({ label, method }) => (
-              <Card key={label}>
-                <BlockStack gap={200}>
-                  <Text as="p" fontWeight="bold" tone="subdued" variant="bodyMd">
-                    {label}
-                  </Text>
-                  <Text as="h1" tone="base" variant="bodyMd" fontWeight="bold">
-                    {storeCurrency} {formatNumber(getAmountByMethod(method))}
-                  </Text>
-                </BlockStack>
-              </Card>
-            ))}
-          </InlineGrid>
-        </Layout.Section> */}
         <Layout.Section>
           <InlineGrid columns={3} gap={400}>
             <Card>
@@ -631,11 +523,6 @@ const Payouts = forwardRef((props, ref) => {
                       onChange={handleSortOrderChange}
                       value={sortOrder}
                     />
-                    {/* <Select
-                      options={payoutMethodOptions}
-                      onChange={handlePayoutChange}
-                      value={selectedPayoutMethod}
-                    /> */}
                   </InlineStack>
                 }
               />
@@ -655,7 +542,6 @@ const Payouts = forwardRef((props, ref) => {
                     headings={[
                       { title: "Name" },
                       { title: "Amount" },
-                      // { title: "Status" },
                       { title: "Payment Date" },
                       { title: "Action", alignment: "end" },
                     ]}
@@ -686,20 +572,11 @@ const Payouts = forwardRef((props, ref) => {
                         <IndexTable.Cell>
                           {storeCurrency} {formatNumber(item.amount) || "0.00"}
                         </IndexTable.Cell>
-                        {/* <IndexTable.Cell>
-                          <Badge tone={statusToneMap[item.status]}>
-                            {typeof item.status === "string"
-                              ? item.status.charAt(0).toUpperCase() +
-                                item.status.slice(1).toLowerCase()
-                              : ""}
-                          </Badge>
-                        </IndexTable.Cell> */}
                         <IndexTable.Cell>
                           {moment(formatDate(item.payout_date || "-")).format(
                             "DD MMM YYYY"
                           )}
                         </IndexTable.Cell>
-
                         <IndexTable.Cell>
                           <InlineStack gap="200" align="end">
                             <Tooltip content="Info">
@@ -740,57 +617,6 @@ const Payouts = forwardRef((props, ref) => {
                       </IndexTable.Row>
                     ))}
                   </IndexTable>
-
-                  {/* {influencerPayouts?.length !== 0 && (
-                    <>
-                      <Box
-                        paddingInline="300"
-                        padding={200}
-                        background="bg-surface-secondary"
-                        borderColor="border-subdued"
-                        borderTopWidth="1"
-                      >
-                        <InlineStack align="space-between" blockAlign="center">
-                          <Text variant="headingSm" tone="base">
-                            Total Manual Paid
-                          </Text>
-                          <Text variant="headingMd" tone="base">
-                            {storeCurrency} {formatNumber(getAmountByMethod())}
-                          </Text>
-                        </InlineStack>
-                      </Box>
-                      <Divider />
-                      <Box
-                        paddingInline="300"
-                        padding={200}
-                        background="bg-surface-secondary"
-                        borderColor="border-subdued"
-                        borderTopWidth="1"
-                      >
-                        <InlineStack align="space-between" blockAlign="center">
-                          <Text variant="headingSm" tone="base">
-                            Pending Commissions
-                          </Text>
-                          <Text variant="headingMd" tone="base">
-                            {storeCurrency}{" "}
-                            {formatNumber(pandingPayouts) || 0.0}
-                          </Text>
-                        </InlineStack>
-                      </Box>
-
-                      <Box padding="200" paddingBlockStart={200}>
-                        <InlineStack align="center">
-                          <Pagination
-                            hasPrevious={currentPage > 1}
-                            hasNext={currentPage < totalPages}
-                            onPrevious={() => handlePageChange(currentPage - 1)}
-                            onNext={() => handlePageChange(currentPage + 1)}
-                            label={`Page ${currentPage} of ${totalPages}`}
-                          />
-                        </InlineStack>
-                      </Box>
-                    </>
-                  )} */}
                 </Bleed>
               )}
             </BlockStack>
@@ -799,8 +625,6 @@ const Payouts = forwardRef((props, ref) => {
         <Layout.Section></Layout.Section>
         <Layout.Section></Layout.Section>
       </Layout>
-
-      {/* Info Modal */}
       <Modal
         open={isModalOpen}
         onClose={closeModal}
@@ -874,8 +698,6 @@ const Payouts = forwardRef((props, ref) => {
           </BlockStack>
         </Modal.Section>
       </Modal>
-
-      {/* Confirm Edit Modal */}
       <Modal
         open={confirmEditModalActive}
         onClose={() => setConfirmEditModalActive(false)}
@@ -897,8 +719,6 @@ const Payouts = forwardRef((props, ref) => {
           <Text>Are you sure you want to edit this payout?</Text>
         </Modal.Section>
       </Modal>
-
-      {/* Edit Modal */}
       <Modal
         open={editModalActive}
         onClose={() => setEditModalActive(false)}
@@ -951,7 +771,6 @@ const Payouts = forwardRef((props, ref) => {
                       )}
                       // onFocus={() => setVisible(true)}
                       // onChange={handleInputValueChange}
-
                       autoComplete="off"
                     />
                   }
@@ -965,12 +784,6 @@ const Payouts = forwardRef((props, ref) => {
                   /> */}
                 </Popover>
               </FormLayout.Group>
-              {/* <Select
-              label="Payout Method"
-              options={payoutMethodOptions}
-              value={editFormData.payout_method}
-              disabled={true}
-            /> */}
               <Select
                 label="Payout Status"
                 options={payoutStatusOptions}
@@ -980,7 +793,6 @@ const Payouts = forwardRef((props, ref) => {
                 }
               />
             </FormLayout>
-
             <TextField
               label="Notes"
               type="text"
@@ -991,7 +803,6 @@ const Payouts = forwardRef((props, ref) => {
               autoComplete="off"
               multiline={4}
             />
-
             <BlockStack gap={100}>
               <DropZone onDrop={handleDropZoneDrop} allowMultiple={false}>
                 {showUploadedFiles ? (

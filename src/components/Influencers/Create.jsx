@@ -97,7 +97,7 @@ function Create({ onClose, onSuccess }) {
 
     if (numericAmount > pendingAmount) {
       newErrors.amount =
-        "Cannot create payout. Amount exceeds pending commission.";
+        "Amount exceeds pending commission.";
       hasError = true;
     }
 
