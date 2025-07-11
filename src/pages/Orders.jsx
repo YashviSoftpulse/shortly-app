@@ -147,7 +147,7 @@ const Orders = ({ selectedTab }) => {
       <IndexTable.Cell>{val?.customer_name || "-"}</IndexTable.Cell>
       <IndexTable.Cell>{val?.customer_email || "-"}</IndexTable.Cell>
       <IndexTable.Cell>
-        {moment(val?.updated_at).format("MMM DD, YYYY") || "-"}
+        {moment(val?.updated_at).format("DD MMM YYYY") || "-"}
       </IndexTable.Cell>
     </IndexTable.Row>
   ));

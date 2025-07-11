@@ -8,12 +8,12 @@ import {
   Select,
 } from "@shopify/polaris";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { fetchData, getApiURL } from "../../action";
 
 function InviteInfluencer() {
   const navigate = useNavigate();
-
+  const location = useLocation();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -21,15 +21,12 @@ function InviteInfluencer() {
     phone: "",
     commissionRule: "",
   });
-
   const [errors, setErrors] = useState({});
   const [commissionType, setCommissionType] = useState("2");
   const [commissionValue, setCommissionValue] = useState(10);
   const [commissionBase, setCommissionBase] = useState("1");
-
-  const [storeCurrency, setStoreCurrency] = useState("Rs.");
-
   const [isSaving, setIsSaving] = useState(false);
+  const { storeCurrency } = location.state;
 
   const handleChange = (field) => (value) => {
     setFormData((prev) => ({
@@ -50,19 +47,6 @@ function InviteInfluencer() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  const fetchStoreCurrency = async () => {
-    const response = await fetchData(getApiURL("get-influencers"));
-    if (response?.status === true) {
-      setStoreCurrency(response?.store_currency);
-    } else {
-      console.error("Error fetching influencers:", response?.message);
-    }
-  };
-
-  useEffect(() => {
-    fetchStoreCurrency();
-  }, []);
 
   const handleSave = async () => {
     if (!validate()) return;

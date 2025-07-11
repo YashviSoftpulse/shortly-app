@@ -23,7 +23,6 @@ import { formatDate } from "../../../utils";
 function UpdateInfluencer() {
   const navigate = useNavigate();
   const { id: uid } = useParams();
-
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     firstName: "",

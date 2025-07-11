@@ -17,14 +17,19 @@ import {
   Link,
   FormLayout,
 } from "@shopify/polaris";
-import { ArrowDownIcon, CheckIcon, ClipboardIcon, InfoIcon } from "@shopify/polaris-icons";
+import {
+  ArrowDownIcon,
+  CheckIcon,
+  ClipboardIcon,
+  InfoIcon,
+} from "@shopify/polaris-icons";
 import { useNavigate } from "react-router-dom";
 import QRCode from "qrcode.react";
-import { formatNumber, handleCopyClick, removeShopDomain, } from "../../utils";
+import { formatNumber, handleCopyClick, removeShopDomain } from "../../utils";
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 import NoQrIcon from "/assets/no-qr.svg";
-import { useApiData } from "../ApiDataProvider"
+import { useApiData } from "../ApiDataProvider";
 
 /* IMPORT REQUIRED MODULES END */
 
@@ -45,7 +50,7 @@ function View({
   nextData,
   APIPath,
   pageNumber,
-  storeCurrency
+  storeCurrency,
 }) {
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
@@ -75,7 +80,7 @@ function View({
         previousData,
         APIPath,
         pageNumber,
-        storeCurrency
+        storeCurrency,
       })
     );
 
@@ -86,27 +91,6 @@ function View({
   const utmData = data[id]?.utm_datas;
 
   const buildQueryParams = (baseURL, type = "shopify") => {
-    const params = new URLSearchParams();
-    if (influencerID) params.append("refby", influencerID);
-
-    let utmObj = {};
-    if (utmData) {
-      if (typeof utmData === "string") {
-        try {
-          utmObj = JSON.parse(utmData);
-        } catch (e) {
-          console.error("Invalid JSON in utm_datas");
-        }
-      } else if (typeof utmData === "object") {
-        utmObj = utmData;
-      }
-    }
-
-    if (utmObj && typeof utmObj === "object") {
-      Object.entries(utmObj).forEach(([key, value]) => {
-        if (value) params.append(key, value);
-      });
-    }
 
     let domainPrefix = "";
     if (type === "custom") {
@@ -116,26 +100,18 @@ function View({
     } else {
       domainPrefix = `https://${SHOP}/`;
     }
-
-    const queryString = params.toString();
-    if (queryString) {
-      const separator = baseURL.includes("?") ? "&" : "?";
-      return `${domainPrefix}${baseURL}${separator}${queryString}`;
-    } else {
-      return `${domainPrefix}${baseURL}`;
-    }
+    return `${domainPrefix}${baseURL}`;
   };
 
   let parsedUtmData = {};
   try {
-    parsedUtmData = JSON.parse(utmData || '{}');
+    parsedUtmData = JSON.parse(utmData || "{}");
   } catch (e) {
-    console.error('Invalid JSON in utm_datas');
+    console.error("Invalid JSON in utm_datas");
   }
 
-
   const validUtmEntries = Object.entries(parsedUtmData || {}).filter(
-    ([key, value]) => value?.trim() !== ''
+    ([key, value]) => value?.trim() !== ""
   );
 
   const handleCopy = (text, itemId) => {
@@ -143,24 +119,27 @@ function View({
       .writeText(text)
       .then(() => {
         // Show checkmark icon immediately for better UX
-        setCopiedItems(prev => ({ ...prev, [itemId]: true }));
+        setCopiedItems((prev) => ({ ...prev, [itemId]: true }));
 
         // Show toast notification
         shopify.toast.show("Copied to Clipboard", { duration: 3000 });
 
         // Return to clipboard icon after 1.5 seconds (faster response)
         setTimeout(() => {
-          setCopiedItems(prev => ({ ...prev, [itemId]: false }));
+          setCopiedItems((prev) => ({ ...prev, [itemId]: false }));
         }, 1500);
       })
       .catch((err) => {
         console.error("Failed to copy: ", err);
         // Show error toast if copy fails
-        shopify.toast.show("Failed to copy to clipboard", { duration: 3000, isError: true });
+        shopify.toast.show("Failed to copy to clipboard", {
+          duration: 3000,
+          isError: true,
+        });
       });
   };
 
-const downloadQRCode = () => {
+  const downloadQRCode = () => {
     if (qrCodeRef.current) {
       html2canvas(qrCodeRef.current, {
         scale: 2,
@@ -168,7 +147,13 @@ const downloadQRCode = () => {
       })
         .then((canvas) => {
           canvas.toBlob((blob) => {
-            saveAs(blob, `${(data[id]?.title || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-')}-qrcode.jpg`);
+            saveAs(
+              blob,
+              `${(data[id]?.title || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9\s]/g, "")
+                .replace(/\s+/g, "-")}-qrcode.jpg`
+            );
           }, "image/jpeg");
         })
         .catch((err) => {
@@ -239,9 +224,9 @@ const downloadQRCode = () => {
                       ?.total_clicks_listing_page &&
                       !plancheck?.plan_details?.features
                         ?.total_clicks_product_page && {
-                      filter: "blur(3px)",
-                      opacity: 0.2,
-                    }),
+                        filter: "blur(3px)",
+                        opacity: 0.2,
+                      }),
                   }}
                 >
                   <Text as="h2" tone="subdued" variant="headingSm">
@@ -295,9 +280,9 @@ const downloadQRCode = () => {
                       ?.total_add_to_cart_listing_page &&
                       !plancheck?.plan_details?.features
                         ?.total_add_to_cart_product_page && {
-                      filter: "blur(3px)",
-                      opacity: 0.2,
-                    }),
+                        filter: "blur(3px)",
+                        opacity: 0.2,
+                      }),
                   }}
                 >
                   <Text as="h2" tone="subdued" variant="headingSm">
@@ -354,9 +339,9 @@ const downloadQRCode = () => {
                       ?.total_checkouts_listing_page &&
                       !plancheck?.plan_details?.features
                         ?.total_checkouts_product_page && {
-                      filter: "blur(3px)",
-                      opacity: 0.2,
-                    }),
+                        filter: "blur(3px)",
+                        opacity: 0.2,
+                      }),
                   }}
                 >
                   <Text as="h2" tone="subdued" variant="headingSm">
@@ -412,9 +397,9 @@ const downloadQRCode = () => {
                       ?.total_sales_listing_page &&
                       !plancheck?.plan_details?.features
                         ?.total_sales_product_page && {
-                      filter: "blur(3px)",
-                      opacity: 0.2,
-                    }),
+                        filter: "blur(3px)",
+                        opacity: 0.2,
+                      }),
                   }}
                 >
                   <Text as="h2" tone="subdued" variant="headingSm">
@@ -422,7 +407,13 @@ const downloadQRCode = () => {
                   </Text>
 
                   <Text as="h4" variant="headingLg">
-                    {storeCurrency === undefined ? formatNumber(data[id]?.anlytics?.total?.total_sales) : storeCurrency + " "+ formatNumber(data[id]?.anlytics?.total?.total_sales || 0)}
+                    {storeCurrency === undefined
+                      ? formatNumber(data[id]?.anlytics?.total?.total_sales)
+                      : storeCurrency +
+                        " " +
+                        formatNumber(
+                          data[id]?.anlytics?.total?.total_sales || 0
+                        )}
                   </Text>
                 </div>
               </Card>
@@ -448,14 +439,12 @@ const downloadQRCode = () => {
                   <TextField
                     readOnly
                     prefix={`https://${SHOP}/`}
-                    value={
-                      removeShopDomain(
-                        data[id]?.onlineStorePreviewUrl,
-                        data[id]?.shopify_url
-                      )
-                    }
+                    value={removeShopDomain(
+                      data[id]?.onlineStorePreviewUrl,
+                      data[id]?.shopify_url
+                    )}
                     connectedRight={
-                      < Tooltip content="Copy link" >
+                      <Tooltip content="Copy link">
                         <Button
                           onClick={() =>
                             handleCopy(
@@ -463,18 +452,26 @@ const downloadQRCode = () => {
                                 removeShopDomain(
                                   data[id]?.onlineStorePreviewUrl,
                                   data[id]?.shopify_url
-                                ), "shopify"
+                                ),
+                                "shopify"
                               ),
-                              'shopify-url'
+                              "shopify-url"
                             )
                           }
                         >
-                          <Icon source={copiedItems['shopify-url'] ? CheckIcon : ClipboardIcon} tone="base" />
+                          <Icon
+                            source={
+                              copiedItems["shopify-url"]
+                                ? CheckIcon
+                                : ClipboardIcon
+                            }
+                            tone="base"
+                          />
                         </Button>
-                      </Tooltip >
+                      </Tooltip>
                     }
                   />
-                </BlockStack >
+                </BlockStack>
 
                 {APIPath !== "influencer-analytics" && (
                   <>
@@ -501,19 +498,30 @@ const downloadQRCode = () => {
                           removeShopDomain(data[id]?.short_link) !== "" &&
                           removeShopDomain(data[id]?.short_link) !== null &&
                           removeShopDomain(data[id]?.short_link) !==
-                          undefined && (
+                            undefined && (
                             <Tooltip content="Copy link">
                               <Button
                                 onClick={() =>
                                   handleCopy(
                                     buildQueryParams(
-                                      removeShopDomain(data[id]?.short_link, ""), "custom"
+                                      removeShopDomain(
+                                        data[id]?.short_link,
+                                        ""
+                                      ),
+                                      "custom"
                                     ),
-                                    'custom-url'
+                                    "custom-url"
                                   )
                                 }
                               >
-                                <Icon source={copiedItems['custom-url'] ? CheckIcon : ClipboardIcon} tone="base" />
+                                <Icon
+                                  source={
+                                    copiedItems["custom-url"]
+                                      ? CheckIcon
+                                      : ClipboardIcon
+                                  }
+                                  tone="base"
+                                />
                               </Button>
                             </Tooltip>
                           )
@@ -550,11 +558,18 @@ const downloadQRCode = () => {
                                   removeShopDomain(data[id]?.custom_url, ""),
                                   "short"
                                 ),
-                                'short-url'
+                                "short-url"
                               )
                             }
                           >
-                            <Icon source={copiedItems['short-url'] ? CheckIcon : ClipboardIcon} tone="base" />
+                            <Icon
+                              source={
+                                copiedItems["short-url"]
+                                  ? CheckIcon
+                                  : ClipboardIcon
+                              }
+                              tone="base"
+                            />
                           </Button>
                         </Tooltip>
                       )
@@ -574,25 +589,16 @@ const downloadQRCode = () => {
                     {validUtmEntries.map(([key, value]) => (
                       <FormLayout>
                         <FormLayout.Group>
-                          <TextField
-                            key={key}
-                            readOnly
-                            value={key}
-                          />
-                          <TextField
-                            key={key}
-                            readOnly
-                            value={value}
-                          />
+                          <TextField key={key} readOnly value={key} />
+                          <TextField key={key} readOnly value={value} />
                         </FormLayout.Group>
                       </FormLayout>
                     ))}
                   </BlockStack>
                 )}
-
-              </BlockStack >
-            </Card >
-          </Layout.Section >
+              </BlockStack>
+            </Card>
+          </Layout.Section>
 
           <Layout.Section variant="oneThird">
             <Card>
@@ -652,19 +658,24 @@ const downloadQRCode = () => {
                           value={buildQueryParams(
                             removeShopDomain(
                               data[id]?.onlineStorePreviewUrl,
-                              data[id]?.shopify_url,
-
+                              data[id]?.shopify_url
                             ) + `?${data[id]?.qr_code}`
                           )}
-                          
-                          size={APIPath === 'influencer-analytics' && validUtmEntries.length === 0 ? 131 : 210}
+                          size={
+                            APIPath === "influencer-analytics" &&
+                            validUtmEntries.length === 0
+                              ? 131
+                              : 210
+                          }
                         />
                       </div>
                       <Button
                         variant="primary"
                         icon={ArrowDownIcon}
                         onClick={() => downloadQRCode()}
-                        disabled={!plancheck?.plan_details?.features?.qr_code_create}
+                        disabled={
+                          !plancheck?.plan_details?.features?.qr_code_create
+                        }
                       >
                         Download
                       </Button>
@@ -687,12 +698,11 @@ const downloadQRCode = () => {
               </div>
             </Card>
           </Layout.Section>
-        </Layout >
-      </Modal.Section >
-    </Modal >
+        </Layout>
+      </Modal.Section>
+    </Modal>
   );
 }
 
 export default View;
 /* VIEW FUNCTIONAL COMPONENT END */
-

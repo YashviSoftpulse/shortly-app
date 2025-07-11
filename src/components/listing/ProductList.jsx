@@ -41,6 +41,7 @@ const ProductList = ({ selectedTab }) => {
   const [previousData, setPreviousData] = useState(false);
   const [isBulkGenerateModal, setIsBulkGenerateModal] = useState(false);
   const [pageData, setPageData] = useState("");
+  const [storeCurrency, setStoreCurrency] = useState("");
   const urlParams = new URLSearchParams(window.location.search);
   const SHOP = urlParams.get("shop");
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
@@ -104,6 +105,7 @@ const ProductList = ({ selectedTab }) => {
       setProducsData(response?.data);
       setPreviousData(response?.page?.previous || false);
       setNextData(response?.page?.next || false);
+      setStoreCurrency(response?.store_currency || "");
     }
   };
   /* GET PRODUCTS DATA HANDLER END */
@@ -235,21 +237,21 @@ const ProductList = ({ selectedTab }) => {
       </IndexTable.Cell>
       {data?.plan_details?.features?.total_clicks_listing_page && (
         <IndexTable.Cell>
-          <Text as="span" alignment="end">
+          <Text as="span" alignment="start">
             {val?.anlytics?.total?.total_clicks || 0}
           </Text>
         </IndexTable.Cell>
       )}
       {data?.plan_details?.features?.total_add_to_cart_listing_page && (
         <IndexTable.Cell>
-          <Text as="span" alignment="end">
+          <Text as="span" alignment="start">
             {val?.anlytics?.total?.total_add_to_cart || 0}
           </Text>
         </IndexTable.Cell>
       )}
       {data?.plan_details?.features?.total_checkouts_listing_page && (
         <IndexTable.Cell>
-          <Text as="span" alignment="end">
+          <Text as="span" alignment="start">
             {val?.anlytics?.total?.total_checkout || 0}
           </Text>
         </IndexTable.Cell>
@@ -321,7 +323,6 @@ const ProductList = ({ selectedTab }) => {
               <Button onClick={() => setIsBulkGenerateModal(true)}>
                 Bulk Link Generate Request
               </Button>
-            
             </div>
           </Box>
         </InlineStack>
@@ -338,13 +339,13 @@ const ProductList = ({ selectedTab }) => {
         headings={[
           { title: "Title" },
           ...(data?.plan_details?.features?.total_clicks_listing_page
-            ? [{ title: "Clicks", alignment: "end" }]
+            ? [{ title: "Clicks", alignment: "start" }]
             : []),
           ...(data?.plan_details?.features?.total_add_to_cart_listing_page
-            ? [{ title: "Add to Cart", alignment: "end" }]
+            ? [{ title: "Add to Cart", alignment: "start" }]
             : []),
           ...(data?.plan_details?.features?.total_checkouts_listing_page
-            ? [{ title: "Checkouts", alignment: "end" }]
+            ? [{ title: "Checkouts", alignment: "start" }]
             : []),
           { title: "Actions", alignment: "center" },
         ]}
@@ -371,6 +372,7 @@ const ProductList = ({ selectedTab }) => {
         previousData={pageData}
         nextData={pageData}
         APIPath="product_list"
+        storeCurrency={storeCurrency}
       />
       <Details
         productsData={productsData}
@@ -387,6 +389,7 @@ const ProductList = ({ selectedTab }) => {
         previousData={pageData}
         nextData={pageData}
         APIPath="product_list"
+        storeCurrency={storeCurrency}
       />
       <ConfirmationModal
         isOpen={isRegenerateModal}

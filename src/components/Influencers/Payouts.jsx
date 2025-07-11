@@ -54,7 +54,7 @@ const Payouts = forwardRef((props, ref) => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchValue, setSearchValue] = useState("");
   const [selectedPayoutMethod, setSelectedPayoutMethod] = useState("3");
-  const [sortOrder, setSortOrder] = useState("DESC");
+  const [sortOrder, setSortOrder] = useState(null);
   const [influencersPayoutsTotal, setInfluencersPayoutsTotal] = useState([]);
   const [storeCurrency, setStoreCurrency] = useState("Rs.");
   const [isConfirmEditLoading, setIsConfirmEditLoading] = useState(false);
@@ -62,14 +62,12 @@ const Payouts = forwardRef((props, ref) => {
   const [confirmEditModalActive, setConfirmEditModalActive] = useState(false);
   const [programToEdit, setProgramToEdit] = useState(null);
   const [editFormData, setEditFormData] = useState({
-    processed_by: "",
     amount: "",
     payout_date: "",
     payout_method: "",
     status: "",
     note: "",
   });
-
   const [deleteModalActive, setDeleteModalActive] = useState(false);
   const [programToDelete, setProgramToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -81,6 +79,7 @@ const Payouts = forwardRef((props, ref) => {
   const [loadingIcons, setLoadingIcons] = useState({});
   const [editFiles, setEditFiles] = useState([]);
   const [pandingPayouts, setPendingPayouts] = useState(0);
+  const [totalCommission, setTotalCommission] = useState(0);
   const [payoutDetailsMap, setPayoutDetailsMap] = useState({});
   const [visible, setVisible] = useState(false);
   const openModal = () => setIsModalOpen(true);
@@ -95,8 +94,9 @@ const Payouts = forwardRef((props, ref) => {
   ];
 
   const sortOrderOptions = [
-    { label: "Descending", value: "DESC" },
-    { label: "Ascending", value: "ASC" },
+    { label: "Payout Date", value: "" },
+    { label: "Oldest to Newest", value: "ASC" },
+    { label: "Newest to Oldest", value: "DESC" },
   ];
 
   function handleOnClose({ relatedTarget }) {
@@ -115,7 +115,7 @@ const Payouts = forwardRef((props, ref) => {
 
     const formData = new FormData();
     formData.append("search", search);
-    formData.append("sortBy", "created_at");
+    formData.append("sortBy", "payout_date");
     formData.append("sortOrder", order);
     formData.append("page", page);
     formData.append("payoutMethod", payoutMethod);
@@ -133,6 +133,7 @@ const Payouts = forwardRef((props, ref) => {
         setPendingPayouts(response?.pending_commissions);
         localStorage.setItem("pandingPayouts", response?.pending_commissions);
         setStoreCurrency(response?.store_currency);
+        setTotalCommission(response?.total_commission);
         // Cache payouts by UID
         const map = {};
         for (const payout of payouts) {
@@ -226,7 +227,6 @@ const Payouts = forwardRef((props, ref) => {
         statusMap[payoutInfo?.status?.toLowerCase()] || 1
       );
       setEditFormData({
-        processed_by: payoutInfo?.processed_by || "",
         amount: amount || "",
         payout_date: payoutInfo?.payout_date || "",
         payout_method: payoutInfo?.payout_method || "",
@@ -456,7 +456,7 @@ const Payouts = forwardRef((props, ref) => {
     return (
       <BlockStack gap="400">
         <InlineGrid gap="200" columns={3}>
-          {[...Array(2)].map((_, idx) => (
+          {[...Array(3)].map((_, idx) => (
             <Card key={idx}>
               <SkeletonBodyText />
             </Card>
@@ -476,6 +476,16 @@ const Payouts = forwardRef((props, ref) => {
           <InlineGrid columns={3} gap={400}>
             <Card>
               <BlockStack gap={200}>
+                <Text as="p" fontWeight="bold" tone="subdued" variant="bodyMd">
+                   Total Commissions
+                </Text>
+                <Text as="h2" tone="base" variant="bodyLg" fontWeight="bold">
+                  {storeCurrency} {formatNumber(totalCommission)}
+                </Text>
+              </BlockStack>
+            </Card>
+            <Card>
+              <BlockStack gap={200}>
                 <Text
                   as="p"
                   fontWeight="bold"
@@ -483,7 +493,7 @@ const Payouts = forwardRef((props, ref) => {
                   variant="bodyMd"
                   text-decoration="dotted"
                 >
-                  Total Manual Paid
+                  Commission Paid
                 </Text>
                 <Text as="h2" tone="base" variant="bodyLg" fontWeight="bold">
                   {storeCurrency} {formatNumber(getAmountByMethod())}
@@ -493,7 +503,7 @@ const Payouts = forwardRef((props, ref) => {
             <Card>
               <BlockStack gap={200}>
                 <Text as="p" fontWeight="bold" tone="subdued" variant="bodyMd">
-                  Pending Commissions
+                  Pending Commission
                 </Text>
                 <Text as="h2" tone="base" variant="bodyLg" fontWeight="bold">
                   {storeCurrency} {formatNumber(pandingPayouts)}
@@ -502,7 +512,7 @@ const Payouts = forwardRef((props, ref) => {
             </Card>
           </InlineGrid>
         </Layout.Section>
-
+        {console.log("sortOrder", sortOrder)}
         <Layout.Section>
           <Card>
             <BlockStack gap={300}>
@@ -517,7 +527,7 @@ const Payouts = forwardRef((props, ref) => {
                 connectedRight={
                   <InlineStack gap={200}>
                     <Select
-                      label="Sort by"
+                      label={`Sort by : `}
                       labelInline
                       options={sortOrderOptions}
                       onChange={handleSortOrderChange}
@@ -541,8 +551,8 @@ const Payouts = forwardRef((props, ref) => {
                     selectable={false}
                     headings={[
                       { title: "Name" },
+                      { title: "Payout Date" },
                       { title: "Amount" },
-                      { title: "Payment Date" },
                       { title: "Action", alignment: "end" },
                     ]}
                     emptyState={
@@ -570,13 +580,14 @@ const Payouts = forwardRef((props, ref) => {
                           {item.influencer_name || "-"}
                         </IndexTable.Cell>
                         <IndexTable.Cell>
-                          {storeCurrency} {formatNumber(item.amount) || "0.00"}
-                        </IndexTable.Cell>
-                        <IndexTable.Cell>
                           {moment(formatDate(item.payout_date || "-")).format(
                             "DD MMM YYYY"
                           )}
                         </IndexTable.Cell>
+                        <IndexTable.Cell>
+                          {storeCurrency} {formatNumber(item.amount) || "0.00"}
+                        </IndexTable.Cell>
+
                         <IndexTable.Cell>
                           <InlineStack gap="200" align="end">
                             <Tooltip content="Info">

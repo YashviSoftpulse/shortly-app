@@ -412,7 +412,11 @@ function Influencers() {
       setShowUpgradeModal(true);
     } else {
       setShowUpgradeModal(false);
-      navigate(`/influencer/invite${window.location.search}`);
+     navigate({
+  pathname: '/influencer/invite',
+  search: window.location.search,
+}, { state: { storeCurrency } });
+
     }
   };
 

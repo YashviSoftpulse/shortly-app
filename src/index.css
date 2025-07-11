@@ -105,11 +105,15 @@ canvas {
   display: flex;
 }
 
-.export-container .Polaris-InlineStack .Polaris-IndexFilters__IndexFiltersWrapper {
+.export-container
+  .Polaris-InlineStack
+  .Polaris-IndexFilters__IndexFiltersWrapper {
   width: calc(100% - var(--p-width-3200));
 }
 
-.bulk-container .Polaris-InlineStack .Polaris-IndexFilters__IndexFiltersWrapper {
+.bulk-container
+  .Polaris-InlineStack
+  .Polaris-IndexFilters__IndexFiltersWrapper {
   width: calc(100% - 12rem);
 }
 
@@ -209,7 +213,7 @@ canvas {
   gap: 10px;
 }
 
-.commissionTypes>div {
+.commissionTypes > div {
   width: 50%;
 }
 
@@ -342,11 +346,11 @@ canvas {
   border-radius: 50%;
 }
 
-input:checked+.influencerUpdateslider {
+input:checked + .influencerUpdateslider {
   background-color: #000000;
 }
 
-input:checked+.influencerUpdateslider:before {
+input:checked + .influencerUpdateslider:before {
   transform: translateX(22px);
 }
 
@@ -392,7 +396,7 @@ input:checked+.influencerUpdateslider:before {
 }
 
 .influencerPlatform .Polaris-Box {
-  padding: 10px;
+  padding: 0;
 }
 
 .influencerPlatform .Polaris-BlockStack p {
@@ -402,8 +406,9 @@ input:checked+.influencerUpdateslider:before {
 
 .influencerPlatform .Polaris-BlockStack {
   width: 100%;
-  max-width: calc(25% - 15px);
-  border-right: 1px solid #b6b5b5;
+  max-width: calc(25% - 6px);
+  border-right: var(--p-border-width-025) solid var(--p-color-border-secondary);
+  padding: 10px ;
 }
 
 .influencerPlatform .Polaris-BlockStack:last-child {
@@ -424,13 +429,11 @@ input:checked+.influencerUpdateslider:before {
   z-index: unset;
 }
 
-
 .PayoutManual {
   max-width: 25%;
 }
 
-
-.inputDate>div {
+.inputDate > div {
   width: 100%;
 }
 
@@ -442,4 +445,7 @@ input:checked+.influencerUpdateslider:before {
 .inputDate input[type="date"] {
   width: 100%;
   display: inline;
+}
+.influencerDashboardCards .Polaris-Icon {
+  margin: 0px;
 }

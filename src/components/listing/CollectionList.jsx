@@ -38,11 +38,11 @@ const CollectionList = ({ selectedTab }) => {
   const limit = 10;
   const [previousData, setPreviousData] = useState(false);
   const [pageData, setPageData] = useState("");
+  const [storeCurrency, setStoreCurrency] = useState("");
   const urlParams = new URLSearchParams(window.location.search);
   const SHOP = urlParams.get("shop");
   const { selectedResources, allResourcesSelected, handleSelectionChange } =
     useIndexResourceState(collectionsData);
-
 
   const handleQueryValueRemove = () => {
     setQueryValue("");
@@ -104,6 +104,7 @@ const CollectionList = ({ selectedTab }) => {
       setCollectionData(response?.data);
       setPreviousData(response?.page?.previous || false);
       setNextData(response?.page?.next || false);
+      // setStoreCurrency(response?.store_currency || "");
     }
   };
   /* GET PRODUCTS DATA HANDLER END */
@@ -192,101 +193,90 @@ const CollectionList = ({ selectedTab }) => {
     getCollectionsData(data);
   }, [isViewModal]);
 
-  const rowMarkup = collectionsData?.map(
-    (val, index) => (
-      (
-        <IndexTable.Row
-          id={index}
-          key={index}
-          selected={selectedResources.includes(index)}
-          position={index}
-        >
-          <IndexTable.Cell>
-            <Text variant="bodyMd" fontWeight="bold" as="span">
-              <div
-                style={{
-                  whiteSpace: "normal",
-                  wordBreak: "break-word",
-                  maxWidth: "800px",
-                }}
-              >
-                <Button
-                  onClick={() =>
-                    window.open(`https://${SHOP}/collections/${val?.handle}`)
-                  }
-                  variant="plain"
-                >
-                  {val?.title}
-                </Button>
-              </div>
-            </Text>
-          </IndexTable.Cell>
-          {data?.plan_details?.features?.total_clicks_listing_page && (
-            <IndexTable.Cell>
-              <Text as="span" alignment="end">
-                {val?.anlytics?.total?.total_clicks || 0}
-              </Text>
-            </IndexTable.Cell>
-          )}
-          {data?.plan_details?.features?.total_add_to_cart_listing_page && (
-            <IndexTable.Cell>
-              <Text as="span" alignment="end">
-                {val?.anlytics?.total?.total_add_to_cart || 0}
-              </Text>
-            </IndexTable.Cell>
-          )}
-          {data?.plan_details?.features?.total_checkouts_listing_page && (
-            <IndexTable.Cell>
-              <Text as="span" alignment="end">
-                {val?.anlytics?.total?.total_checkout || 0}
-              </Text>
-            </IndexTable.Cell>
-          )}
-          <IndexTable.Cell>
-            <InlineStack align="center">
-              <ButtonGroup alignment="center" variant="segment">
-                {
-                  // data?.plan_details?.features?.short_url_create &&
-                  // data?.plan_details?.features?.custom_url_create &&
-                  // data?.plan_details?.features?.qr_code_create &&
-                  !removeShopDomain(val?.short_link) &&
-                    !removeShopDomain(val?.custom_url) ? (
-                    <InlineStack align="start" gap={200}>
-                      <Button onClick={() => handleGenerate(index, val?.title)}>
-                        <div style={{ width: "var(--p-width-1600)" }}>
-                          Generate
-                        </div>
-                      </Button>
-                    </InlineStack>
-                  ) : (
-                    <InlineStack align="start" gap={200}>
-                      {/* {data?.plan_details?.features?.regenerate && ( */}
-
-                      <Button onClick={() => handleRegenerateClick(index)}>
-                        <div style={{ width: "var(--p-width-1600)" }}>
-                          Regenerate
-                        </div>
-                      </Button>
-
-                      {/* )} */}
-                    </InlineStack>
-                  )
-                }
-                <div style={{ width: "var(--p-width-1200)" }}>
-                  <Button
-                    size="slim"
-                    onClick={() => handleView(index, val?.title)}
-                  >
-                    View
+  const rowMarkup = collectionsData?.map((val, index) => (
+    <IndexTable.Row
+      id={index}
+      key={index}
+      selected={selectedResources.includes(index)}
+      position={index}
+    >
+      <IndexTable.Cell>
+        <Text variant="bodyMd" fontWeight="bold" as="span">
+          <div
+            style={{
+              whiteSpace: "normal",
+              wordBreak: "break-word",
+              maxWidth: "800px",
+            }}
+          >
+            <Button
+              onClick={() =>
+                window.open(`https://${SHOP}/collections/${val?.handle}`)
+              }
+              variant="plain"
+            >
+              {val?.title}
+            </Button>
+          </div>
+        </Text>
+      </IndexTable.Cell>
+      {data?.plan_details?.features?.total_clicks_listing_page && (
+        <IndexTable.Cell>
+          <Text as="span" alignment="start">
+            {val?.anlytics?.total?.total_clicks || 0}
+          </Text>
+        </IndexTable.Cell>
+      )}
+      {data?.plan_details?.features?.total_add_to_cart_listing_page && (
+        <IndexTable.Cell>
+          <Text as="span" alignment="start">
+            {val?.anlytics?.total?.total_add_to_cart || 0}
+          </Text>
+        </IndexTable.Cell>
+      )}
+      {data?.plan_details?.features?.total_checkouts_listing_page && (
+        <IndexTable.Cell>
+          <Text as="span" alignment="start">
+            {val?.anlytics?.total?.total_checkout || 0}
+          </Text>
+        </IndexTable.Cell>
+      )}
+      <IndexTable.Cell>
+        <InlineStack align="center">
+          <ButtonGroup alignment="center" variant="segment">
+            {
+              // data?.plan_details?.features?.short_url_create &&
+              // data?.plan_details?.features?.custom_url_create &&
+              // data?.plan_details?.features?.qr_code_create &&
+              !removeShopDomain(val?.short_link) &&
+              !removeShopDomain(val?.custom_url) ? (
+                <InlineStack align="start" gap={200}>
+                  <Button onClick={() => handleGenerate(index, val?.title)}>
+                    <div style={{ width: "var(--p-width-1600)" }}>Generate</div>
                   </Button>
-                </div>
-              </ButtonGroup>
-            </InlineStack>
-          </IndexTable.Cell>
-        </IndexTable.Row>
-      )
-    )
-  );
+                </InlineStack>
+              ) : (
+                <InlineStack align="start" gap={200}>
+                  {/* {data?.plan_details?.features?.regenerate && ( */}
+                  <Button onClick={() => handleRegenerateClick(index)}>
+                    <div style={{ width: "var(--p-width-1600)" }}>
+                      Regenerate
+                    </div>
+                  </Button>
+                  {/* )} */}
+                </InlineStack>
+              )
+            }
+            <div style={{ width: "var(--p-width-1200)" }}>
+              <Button size="slim" onClick={() => handleView(index, val?.title)}>
+                View
+              </Button>
+            </div>
+          </ButtonGroup>
+        </InlineStack>
+      </IndexTable.Cell>
+    </IndexTable.Row>
+  ));
 
   return (
     <LegacyCard>
@@ -313,13 +303,13 @@ const CollectionList = ({ selectedTab }) => {
         headings={[
           { title: "Title" },
           ...(data?.plan_details?.features?.total_clicks_listing_page
-            ? [{ title: "Clicks", alignment: "end" }]
+            ? [{ title: "Clicks", alignment: "start" }]
             : []),
           ...(data?.plan_details?.features?.total_add_to_cart_listing_page
-            ? [{ title: "Add to Cart", alignment: "end" }]
+            ? [{ title: "Add to Cart", alignment: "start" }]
             : []),
           ...(data?.plan_details?.features?.total_checkouts_listing_page
-            ? [{ title: "Checkouts", alignment: "end" }]
+            ? [{ title: "Checkouts", alignment: "start" }]
             : []),
           { title: "Actions", alignment: "center" },
         ]}
@@ -345,6 +335,7 @@ const CollectionList = ({ selectedTab }) => {
         previousData={pageData}
         nextData={pageData}
         APIPath="/collection_list"
+        storeCurrency={storeCurrency}
       />
       <Details
         productsData={collectionsData}
@@ -360,6 +351,7 @@ const CollectionList = ({ selectedTab }) => {
         previousData={previousData}
         nextData={nextData}
         APIPath="/collection_list"
+        storeCurrency={storeCurrency}
       />
       <ConfirmationModal
         isOpen={isRegenerateModal}

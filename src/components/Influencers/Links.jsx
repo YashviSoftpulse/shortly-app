@@ -317,32 +317,6 @@ function Links({ selectedDates, setStateTab }) {
                             </IndexTable.Row>
                           ))
                         : influencer?.map((item, index) => {
-                            const params = new URLSearchParams();
-
-                            if (item.id) {
-                              params.append("refby", item.id);
-                            }
-
-                            let utmObj = {};
-                            if (item.utm_datas) {
-                              if (typeof item.utm_datas === "string") {
-                                try {
-                                  utmObj = JSON.parse(item.utm_datas);
-                                } catch (e) {
-                                  console.error("Invalid JSON in utm_datas");
-                                }
-                              } else if (typeof item.utm_datas === "object") {
-                                utmObj = item.utm_datas;
-                              }
-                            }
-
-                            if (utmObj && typeof utmObj === "object") {
-                              Object.entries(utmObj).forEach(([key, value]) => {
-                                if (value) params.append(key, value);
-                              });
-                            }
-                            const isShortUrl = `http://srtr.me/${ item?.custom_url}?${params.toString()}`;
-
                             return (
                               <IndexTable.Row
                                 id={item.id}
@@ -408,7 +382,10 @@ function Links({ selectedDates, setStateTab }) {
                                             : ClipboardIcon
                                         }
                                         onClick={() =>
-                                          handleCopy(isShortUrl, item.id)
+                                          handleCopy(
+                                            `http://srtr.me/${item?.custom_url}`,
+                                            item.id
+                                          )
                                         }
                                         accessibilityLabel="Copy Link"
                                       />

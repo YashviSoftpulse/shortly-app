@@ -268,7 +268,7 @@ function Overview({ selectedDates }) {
               <BlockStack gap="200">
                 <div className="influencerPlatform">
                   <Card>
-                    <InlineStack gap={400} align="space-between">
+                    <InlineStack gap={200}>
                       {[
                         {
                           label: "Total Clicks",
@@ -277,17 +277,17 @@ function Overview({ selectedDates }) {
                             "0",
                         },
                         {
+                          label: "Total Add to Cart ",
+                          value:
+                            formatNumber(
+                              influencerAnalytics?.total_add_to_cart
+                            ) || "0",
+                        },
+                        {
                           label: "Total Orders",
                           value:
                             formatNumber(influencerAnalytics?.total_orders) ||
                             "0",
-                        },
-                        {
-                          label: "Cancelled Orders",
-                          value:
-                            formatNumber(
-                              influencerAnalytics?.total_cancelled_orders
-                            ) || "0",
                         },
                         {
                           label: "Commissions",
@@ -298,25 +298,28 @@ function Overview({ selectedDates }) {
                               ) || "0",
                         },
                       ].map(({ label, value }) => (
-                        <BlockStack gap={200} key={label}>
-                          <Text
-                            as="p"
-                            fontWeight="bold"
-                            tone="subdued"
-                            variant="bodyMd"
-                            text-decoration="dotted"
-                          >
-                            {label}
-                          </Text>
-                          <Text
-                            as="h2"
-                            tone="base"
-                            variant="bodyLg"
-                            fontWeight="bold"
-                          >
-                            {value}
-                          </Text>
-                        </BlockStack>
+                        <>
+                          <BlockStack gap={200} key={label}>
+                            <Text
+                              as="p"
+                              fontWeight="bold"
+                              tone="subdued"
+                              variant="bodyMd"
+                              text-decoration="dotted"
+                            >
+                              {label}
+                            </Text>
+
+                            <Text
+                              as="h2"
+                              tone="base"
+                              variant="bodyLg"
+                              fontWeight="bold"
+                            >
+                              {value}
+                            </Text>
+                          </BlockStack>
+                        </>
                       ))}
                     </InlineStack>
                   </Card>
@@ -329,57 +332,95 @@ function Overview({ selectedDates }) {
                     <div className="influencerDashboardCards">
                       {[
                         {
-                          label: "Add to Cart",
+                          label: "Cancelled Orders",
                           value:
                             formatNumber(
-                              influencerAnalytics?.total_add_to_cart
+                              influencerAnalytics?.total_cancelled_orders
                             ) || "0",
                         },
                         {
-                          label: "Revenue (Gross)",
+                          label: "Product Sales",
+                          value:
+                            storeCurrency +
+                              formatNumber(
+                                influencerAnalytics?.total_products_revenue
+                              ) || "0",
+                        },
+
+                        {
+                          label: "Total Taxes",
+                          value:
+                            storeCurrency +
+                              formatNumber(influencerAnalytics?.total_tax) ||
+                            "0",
+                        },
+                        {
+                          label: "Total Shipping",
+                          value:
+                            storeCurrency +
+                              formatNumber(
+                                influencerAnalytics?.total_shipping
+                              ) || "0",
+                        },
+                        {
+                          label: "Gross Revenue",
                           value:
                             storeCurrency +
                               formatNumber(
                                 influencerAnalytics?.total_gross_revenue
                               ) || "0",
                         },
+
                         {
-                          label: "Revenue (Net)",
+                          label: "Net Revenue",
                           value:
                             storeCurrency +
                               formatNumber(
                                 influencerAnalytics?.total_net_revenue
                               ) || "0",
                         },
-                        {
-                          label: "Product Sales",
-                          value:
-                           storeCurrency +  formatNumber(
-                              influencerAnalytics?.total_products_revenue
-                            ) || "0",
-                        },
-                        {
-                          label: "Total Shipping",
-                          value:
-                            storeCurrency + formatNumber(influencerAnalytics?.total_shipping) ||
-                            "0",
-                        },
-                        {
-                          label: "Total Taxes",
-                          value:
-                           storeCurrency +  formatNumber(influencerAnalytics?.total_tax) || "0",
-                        },
                       ].map(({ label, value }) => (
                         <Card key={label}>
                           <BlockStack gap={200}>
-                            <Text
-                              as="p"
-                              fontWeight="bold"
-                              tone="subdued"
-                              variant="bodyMd"
-                            >
-                              {label}
-                            </Text>
+                            {[
+                              "Net Revenue",
+                              "Gross Revenue",
+                              "Product Sales",
+                            ].includes(label) ? (
+                              <Tooltip
+                                content={
+                                  label === "Gross Revenue"
+                                    ? "Sum of all orders"
+                                    : label === "Net Revenue"
+                                    ? "Net revenue = Gross revenue – Cancelled orders"
+                                    : label === "Product Sales"
+                                    ? "Total revenue generated from product sales (excluding tax & shipping)."
+                                    : ""
+                                }
+                              >
+                                <InlineStack gap={100} align="start">
+                                  <Text
+                                    as="p"
+                                    fontWeight="bold"
+                                    tone="subdued"
+                                    variant="bodyMd"
+                                  >
+                                    {label}
+                                  </Text>
+                                  <Icon source={InfoIcon} tone="subdued" />
+                                </InlineStack>
+                              </Tooltip>
+                            ) : (
+                              <Text
+                                as="p"
+                                fontWeight="bold"
+                                tone="subdued"
+                                variant="bodyMd"
+                              >
+                                {label}
+                              </Text>
+                            )}
+
                             <Text
                               as="h2"
                               tone="base"
@@ -409,7 +450,9 @@ function Overview({ selectedDates }) {
                       <InlineStack align="space-between">
                         <Text variant="bodyMd">Last Update</Text>
                         <Text variant="bodySm">
-                          {moment(influencerInfo?.created_at).format("DD MMM YYYY") || "-"}
+                          {moment(influencerInfo?.created_at).format(
+                            "DD MMM YYYY"
+                          ) || "-"}
                         </Text>
                       </InlineStack>
 
@@ -568,21 +611,28 @@ function Overview({ selectedDates }) {
                                         {commissionOn}
                                       </IndexTable.Cell>
                                       <IndexTable.Cell>
-                                        {moment(formatDate(commission?.created_at)).format("DD MMM YYYY")}
+                                        {moment(
+                                          formatDate(commission?.created_at)
+                                        ).format("DD MMM YYYY")}
                                       </IndexTable.Cell>
                                       <IndexTable.Cell>
-                                        {moment(formatDate(commission?.from_date)).format("DD MMM YYYY")}
+                                        {moment(
+                                          formatDate(commission?.from_date)
+                                        ).format("DD MMM YYYY")}
                                       </IndexTable.Cell>
                                       <IndexTable.Cell>
-                                        {formatDate(
-                                          commission?.to_date || "current"
-                                        )}
+                                        {moment(
+                                          formatDate(
+                                            commission?.to_date || "current"
+                                          )
+                                        ).format("DD MMM YYYY")}
                                       </IndexTable.Cell>
                                       <IndexTable.Cell>
                                         <InlineStack align="end">
-                                          {storeCurrency +formatNumber(
-                                            commission?.total_commission_during_this
-                                          )}
+                                          {storeCurrency +
+                                            formatNumber(
+                                              commission?.total_commission_during_this
+                                            )}
                                         </InlineStack>
                                       </IndexTable.Cell>
                                     </IndexTable.Row>
@@ -606,9 +656,10 @@ function Overview({ selectedDates }) {
                               Total Commission
                             </Text>
                             <Text variant="bodyLg" fontWeight="bold">
-                              {storeCurrency + formatNumber(
-                                influencerCommission?.total_commission
-                              )}
+                              {storeCurrency +
+                                formatNumber(
+                                  influencerCommission?.total_commission
+                                )}
                             </Text>
                           </InlineStack>
                         </div>
@@ -635,7 +686,9 @@ function Overview({ selectedDates }) {
                     <Text variant="bodyMd" fontWeight="bold">
                       Click Analytics
                     </Text>
-                    <div className="Polaris-Box">{initClickAnalyticsChart()}</div>
+                    <div className="Polaris-Box">
+                      {initClickAnalyticsChart()}
+                    </div>
                   </BlockStack>
                 </Card>
               </Layout.Section>
@@ -656,7 +709,9 @@ function Overview({ selectedDates }) {
                           </Tooltip>
                         </InlineStack>
 
-                        <div className="Polaris-Box">{initDeviceUsageChart()}</div>
+                        <div className="Polaris-Box">
+                          {initDeviceUsageChart()}
+                        </div>
                       </BlockStack>
                     </Card>
                   </Layout.Section>

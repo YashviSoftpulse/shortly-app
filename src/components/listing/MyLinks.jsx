@@ -265,21 +265,21 @@ function MyLinks({
         </IndexTable.Cell>
         {data?.plan_details?.features?.total_clicks_listing_page && (
           <IndexTable.Cell>
-            <Text as="span" alignment="end">
+            <Text as="span" alignment="start">
               {val?.anlytics?.total?.total_clicks || 0}
             </Text>
           </IndexTable.Cell>
         )}
         {data?.plan_details?.features?.total_add_to_cart_listing_page && (
           <IndexTable.Cell>
-            <Text as="span" alignment="end">
+            <Text as="span" alignment="start">
               {val?.anlytics?.total?.total_add_to_cart || 0}
             </Text>
           </IndexTable.Cell>
         )}
         {data?.plan_details?.features?.total_checkouts_listing_page && (
           <IndexTable.Cell>
-            <Text as="span" alignment="end">
+            <Text as="span" alignment="start">
               {val?.anlytics?.total?.total_checkout || 0}
             </Text>
           </IndexTable.Cell>
@@ -351,13 +351,13 @@ function MyLinks({
           { title: "Title" },
           { title: "Type" },
           ...(data?.plan_details?.features?.total_clicks_listing_page
-            ? [{ title: "Clicks", alignment: "end" }]
+            ? [{ title: "Clicks", alignment: "start" }]
             : []),
           ...(data?.plan_details?.features?.total_add_to_cart_listing_page
-            ? [{ title: "Add to Cart", alignment: "end" }]
+            ? [{ title: "Add to Cart", alignment: "start" }]
             : []),
           ...(data?.plan_details?.features?.total_checkouts_listing_page
-            ? [{ title: "Checkouts", alignment: "end" }]
+            ? [{ title: "Checkouts", alignment: "start" }]
             : []),
           { title: "Actions", alignment: "center" },
         ]}
@@ -386,7 +386,7 @@ function MyLinks({
         pageNumber={pageNumber}
         storeCurrency={storeCurrency}
       />
-      <Details 
+      <Details
         productsData={LinksData}
         productId={productId}
         isDetailsModal={isDetailsModal}
@@ -399,6 +399,7 @@ function MyLinks({
         previousData={previousData}
         nextData={nextData}
         APIPath="redirect_list_V2"
+        storeCurrency={storeCurrency}
       />
       <ConfirmationModal
         isOpen={isRegenerateModal}

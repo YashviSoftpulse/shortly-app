@@ -131,7 +131,6 @@ function Details() {
       })
       .catch((err) => {
         console.error("Failed to copy: ", err);
-        // Show error toast if copy fails
         shopify.toast.show("Failed to copy to clipboard", {
           duration: 3000,
           isError: true,
@@ -410,8 +409,10 @@ function Details() {
       };
     });
 
-  
-console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?.plan_details?.features?.clicks_analytics_product_page)
+    console.log(
+      "data?.plan_details?.features?.clicks_analytics_product_page",
+      data?.plan_details?.features?.clicks_analytics_product_page
+    );
     return clicks.length === 0 ? (
       <div className="fade-in-slide-up">
         <BlockStack inlineAlign="center">
@@ -592,28 +593,6 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
   const utmData = responseData?.[productId]?.utm_datas;
 
   const buildQueryParams = (baseURL, type = "shopify") => {
-    const params = new URLSearchParams();
-    if (influencerID) params.append("refby", influencerID);
-
-    let utmObj = {};
-    if (utmData) {
-      if (typeof utmData === "string") {
-        try {
-          utmObj = JSON.parse(utmData);
-        } catch (e) {
-          console.error("Invalid JSON in utm_datas");
-        }
-      } else if (typeof utmData === "object") {
-        utmObj = utmData;
-      }
-    }
-
-    if (utmObj && typeof utmObj === "object") {
-      Object.entries(utmObj).forEach(([key, value]) => {
-        if (value) params.append(key, value);
-      });
-    }
-
     let domainPrefix = "";
     if (type === "custom") {
       domainPrefix = `https://${SHOP}/`;
@@ -623,13 +602,7 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
       domainPrefix = `https://${SHOP}/`;
     }
 
-    const queryString = params.toString();
-    if (queryString) {
-      const separator = baseURL.includes("?") ? "&" : "?";
-      return `${domainPrefix}${baseURL}${separator}${queryString}`;
-    } else {
-      return `${domainPrefix}${baseURL}`;
-    }
+    return `${domainPrefix}${baseURL}`;
   };
 
   let parsedUtmData = {};
@@ -1286,7 +1259,8 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                             checkAPIForAnalytics?.product_analytics?.total
                               ?.total_sales || 0
                           )
-                        : storeCurrency + " " +
+                        : storeCurrency +
+                          " " +
                           formatNumber(
                             checkAPIForAnalytics?.product_analytics?.total
                               ?.total_sales || 0
@@ -1345,7 +1319,8 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                             checkAPIForAnalytics?.product_analytics
                               ?.short_url_anlytics?.total_sales || 0
                           )
-                        : storeCurrency + " " +
+                        : storeCurrency +
+                          " " +
                           formatNumber(
                             checkAPIForAnalytics?.product_analytics
                               ?.short_url_anlytics?.total_sales || 0
@@ -1361,7 +1336,8 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                               productAnalytics?.product_analytics
                                 ?.custom_url_anlytics?.total_sales || 0
                             )
-                          : storeCurrency +" " +
+                          : storeCurrency +
+                            " " +
                             formatNumber(
                               productAnalytics?.product_analytics
                                 ?.custom_url_anlytics?.total_sales || 0
@@ -1377,7 +1353,8 @@ console.log('data?.plan_details?.features?.clicks_analytics_product_page', data?
                             checkAPIForAnalytics?.product_analytics
                               ?.qr_code_anlytics?.total_sales || 0
                           )
-                        : storeCurrency + " " +
+                        : storeCurrency +
+                          " " +
                           formatNumber(
                             checkAPIForAnalytics?.product_analytics
                               ?.qr_code_anlytics?.total_sales || 0
