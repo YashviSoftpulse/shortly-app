@@ -32,6 +32,7 @@ import {
   InlineGrid,
   Popover,
   Icon,
+  Banner,
 } from "@shopify/polaris";
 import { fetchData, getApiURL } from "../../action";
 import { formatDate, formatNumber } from "../../utils";
@@ -42,10 +43,12 @@ import {
   InfoIcon,
 } from "@shopify/polaris-icons";
 import moment from "moment";
+import { useApiData } from "../ApiDataProvider";
 
 // function Payouts() {
 const Payouts = forwardRef((props, ref) => {
   const { id } = useParams();
+  const { data, error } = useApiData();
   const [loading, setLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -84,6 +87,7 @@ const Payouts = forwardRef((props, ref) => {
   const [visible, setVisible] = useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  const [planupgrade, setPlanupgrade] = useState(null);
   const isFirstRun = useRef(true);
   const payoutStatusOptions = [
     { label: "Pending", value: "1" },
@@ -143,6 +147,7 @@ const Payouts = forwardRef((props, ref) => {
       } else {
         setInfluencersPayouts([]);
         setTotalPages(1);
+        setPlanupgrade(response);
       }
     } catch (error) {
       setInfluencersPayouts([]);
@@ -472,58 +477,139 @@ const Payouts = forwardRef((props, ref) => {
   return (
     <>
       <Layout>
-        <Layout.Section>
-          <InlineGrid columns={3} gap={400}>
-            <Card>
-              <BlockStack gap={200}>
-                <Text as="p" fontWeight="bold" tone="subdued" variant="bodyMd">
-                   Total Commissions
-                </Text>
-                <Text as="h2" tone="base" variant="bodyLg" fontWeight="bold">
-                  {storeCurrency} {formatNumber(totalCommission)}
-                </Text>
-              </BlockStack>
-            </Card>
-            <Card>
-              <BlockStack gap={200}>
-                <Text
-                  as="p"
-                  fontWeight="bold"
-                  tone="subdued"
-                  variant="bodyMd"
-                  text-decoration="dotted"
-                >
-                  Commission Paid
-                </Text>
-                <Text as="h2" tone="base" variant="bodyLg" fontWeight="bold">
-                  {storeCurrency} {formatNumber(getAmountByMethod())}
-                </Text>
-              </BlockStack>
-            </Card>
-            <Card>
-              <BlockStack gap={200}>
-                <Text as="p" fontWeight="bold" tone="subdued" variant="bodyMd">
-                  Pending Commission
-                </Text>
-                <Text as="h2" tone="base" variant="bodyLg" fontWeight="bold">
-                  {storeCurrency} {formatNumber(pandingPayouts)}
-                </Text>
-              </BlockStack>
-            </Card>
-          </InlineGrid>
-        </Layout.Section>
-        {console.log("sortOrder", sortOrder)}
+        {data?.plan_details.name === "Free" && (
+          <Layout.Section>
+            <Banner
+              title="Premium Features Unlocked"
+              action={{
+                content: (
+                  <InlineStack gap={200}>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                        fill="#FFD700"
+                        stroke="#FFD700"
+                        strokeWidth="2"
+                      />
+                    </svg>{" "}
+                    Upgrade plan
+                  </InlineStack>
+                ),
+                url: `/plans${window.location.search}`,
+              }}
+              status="info"
+            >
+              {planupgrade.message}
+            </Banner>
+          </Layout.Section>
+        )}
+        {data?.plan_details.name !== "Free" && (
+          <Layout.Section>
+            <InlineGrid columns={3} gap={400}>
+              <Card>
+                <BlockStack gap={200}>
+                  <Text
+                    as="p"
+                    fontWeight="bold"
+                    tone="subdued"
+                    variant="bodyMd"
+                  >
+                    Total Commissions
+                  </Text>
+                  <Text as="h2" tone="base" variant="bodyLg" fontWeight="bold">
+                    {storeCurrency} {formatNumber(totalCommission)}
+                  </Text>
+                </BlockStack>
+              </Card>
+              <Card>
+                <BlockStack gap={200}>
+                  <Text
+                    as="p"
+                    fontWeight="bold"
+                    tone="subdued"
+                    variant="bodyMd"
+                    text-decoration="dotted"
+                  >
+                    Commission Paid
+                  </Text>
+                  <Text as="h2" tone="base" variant="bodyLg" fontWeight="bold">
+                    {storeCurrency} {formatNumber(getAmountByMethod())}
+                  </Text>
+                </BlockStack>
+              </Card>
+              <Card>
+                <BlockStack gap={200}>
+                  <Text
+                    as="p"
+                    fontWeight="bold"
+                    tone="subdued"
+                    variant="bodyMd"
+                  >
+                    Pending Commission
+                  </Text>
+                  <Text as="h2" tone="base" variant="bodyLg" fontWeight="bold">
+                    {storeCurrency} {formatNumber(pandingPayouts)}
+                  </Text>
+                </BlockStack>
+              </Card>
+            </InlineGrid>
+          </Layout.Section>
+        )}
         <Layout.Section>
           <Card>
-            <BlockStack gap={300}>
+            {data?.plan_details.name === "Free" && (
+              <div className="premium-plan">
+                <p>
+                  Get more insight with{" "}
+                  <Button
+                    size="slim"
+                    onClick={() => navigate(`/plans${window.location.search}`)}
+                    icon={
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                          fill="#FFD700"
+                          stroke="#FFD700"
+                          strokeWidth="2"
+                        />
+                      </svg>
+                    }
+                  >
+                    Upgrade Plan
+                  </Button>
+                </p>
+              </div>
+            )}
+            <div
+              class="Polaris-BlockStack"
+              style={{
+                "--pc-block-stack-order": "column",
+                "--pc-block-stack-gap-xs": "var(--p-space-300)",
+                ...(data?.plan_details.name === "Free" && {
+                  filter: "blur(3px)",
+                  opacity: 0.1,
+                }),
+              }}
+            >
               <TextField
-                label="Search Payouts"
+                label="Search by date or amount"
                 labelHidden
                 value={searchValue}
                 onChange={handleSearchChange}
                 placeholder="Search Payouts"
                 clearButton
                 onClearButtonClick={() => handleSearchChange("")}
+                disabled={data?.plan_details?.name === "Free"}
                 connectedRight={
                   <InlineStack gap={200}>
                     <Select
@@ -532,6 +618,7 @@ const Payouts = forwardRef((props, ref) => {
                       options={sortOrderOptions}
                       onChange={handleSortOrderChange}
                       value={sortOrder}
+                      disabled={data?.plan_details?.name === "Free"}
                     />
                   </InlineStack>
                 }
@@ -601,6 +688,7 @@ const Payouts = forwardRef((props, ref) => {
                                 }
                                 onClick={() => infoPayout(item.uid)}
                                 accessibilityLabel="Info Payout"
+                                disabled={data?.plan_details?.name === "Free"}
                               />
                             </Tooltip>
                             {(item.status === "pending" ||
@@ -610,6 +698,7 @@ const Payouts = forwardRef((props, ref) => {
                                   icon={EditIcon}
                                   onClick={() => handleEdit(item.uid)}
                                   accessibilityLabel="Edit Payout"
+                                  disabled={data?.plan_details?.name === "Free"}
                                 />
                               </Tooltip>
                             )}
@@ -630,7 +719,7 @@ const Payouts = forwardRef((props, ref) => {
                   </IndexTable>
                 </Bleed>
               )}
-            </BlockStack>
+            </div>
           </Card>
         </Layout.Section>
         <Layout.Section></Layout.Section>
@@ -696,11 +785,11 @@ const Payouts = forwardRef((props, ref) => {
             </InlineStack>
 
             <InlineStack align="space-between">
-              <Text variant="bodyMd">Payment Proof</Text>
+              <Text variant="bodyMd">Attachement</Text>
               {influencerInfo?.payment_proof ? (
                 <Thumbnail
                   source={influencerInfo.payment_proof}
-                  alt="Payment Proof"
+                  alt="attachement"
                 />
               ) : (
                 <Text variant="bodySm">No file uploaded</Text>

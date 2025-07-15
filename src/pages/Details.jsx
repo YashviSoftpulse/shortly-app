@@ -100,7 +100,6 @@ function Details() {
   const urlParams = new URLSearchParams(window.location.search);
   const SHOP = urlParams.get("shop");
   const qrCodeRef = useRef(null);
-
   const checkAPIForAnalytics =
     APIPath === "influencer-analytics"
       ? influencerProductAnalytics
@@ -341,7 +340,6 @@ function Details() {
     if (selectedTab !== undefined) {
       sessionStorage?.setItem("selectedTab", selectedTab);
     }
-    console.log("1", changeFormat(selectedDates.start));
 
     if (APIPath === "influencer-analytics") {
       influncerAnaliytics();
@@ -409,10 +407,6 @@ function Details() {
       };
     });
 
-    console.log(
-      "data?.plan_details?.features?.clicks_analytics_product_page",
-      data?.plan_details?.features?.clicks_analytics_product_page
-    );
     return clicks.length === 0 ? (
       <div className="fade-in-slide-up">
         <BlockStack inlineAlign="center">
@@ -590,7 +584,31 @@ function Details() {
     );
   };
 
-  const utmData = responseData?.[productId]?.utm_datas;
+  let utmData = {};
+  try {
+    utmData = JSON.parse(productsData[productId]?.utm_datas || "{}");
+  } catch (e) {
+    console.error("Invalid JSON in utm_datas");
+  }
+
+  const utmQueryString = Object.entries(utmData).length
+    ? Object.entries(utmData)
+        .map(
+          ([key, value]) =>
+            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+        )
+        .join("&")
+    : "";
+
+  let qrQueryParams = `?${productsData[productId]?.qr_code || ""}`;
+
+  if (influencerID) {
+    qrQueryParams += `&refby=${influencerID}`;
+  }
+
+  if (utmQueryString) {
+    qrQueryParams += `&${utmQueryString}`;
+  }
 
   const buildQueryParams = (baseURL, type = "shopify") => {
     let domainPrefix = "";
@@ -605,14 +623,7 @@ function Details() {
     return `${domainPrefix}${baseURL}`;
   };
 
-  let parsedUtmData = {};
-  try {
-    parsedUtmData = JSON.parse(utmData || "{}");
-  } catch (e) {
-    console.error("Invalid JSON in utm_datas");
-  }
-
-  const validUtmEntries = Object.entries(parsedUtmData || {}).filter(
+  const validUtmEntries = Object.entries(utmData || {}).filter(
     ([key, value]) => value?.trim() !== ""
   );
 
@@ -1636,6 +1647,7 @@ function Details() {
                   />
                 </div>
               </BlockStack>
+              {console.log("validUtmEntries", validUtmEntries)}
 
               {validUtmEntries.length > 0 && (
                 <BlockStack gap={200}>
@@ -1720,7 +1732,7 @@ function Details() {
                           removeShopDomain(
                             responseData[productId]?.onlineStorePreviewUrl,
                             responseData[productId]?.shopify_url
-                          ) + `?${responseData[productId]?.qr_code}`
+                          ) + `${qrQueryParams}`
                         )}
                         size={
                           APIPath === "influencer-analytics" &&

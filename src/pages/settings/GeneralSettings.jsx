@@ -13,6 +13,8 @@ import {
   Button,
   Banner,
   InlineStack,
+  Checkbox,
+  Divider,
 } from "@shopify/polaris";
 import { NoteIcon } from "@shopify/polaris-icons";
 import React, { useCallback, useEffect, useState } from "react";
@@ -27,6 +29,7 @@ function GeneralSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [frontName, setFrontName] = useState("");
+  const [frontLogo, setFrontLogo] = useState(false);
   const [customCss, setCustomCss] = useState("");
   const [storefrontView, setStorefrontView] = useState("2");
   const [selectedPicker, setSelectedPicker] = useState("");
@@ -48,7 +51,13 @@ function GeneralSettings() {
       return;
     }
 
-    const isValid = ["image/jpeg", "image/png", "image/gif" , "image/jpg" ,  "image/svg+xml"].includes(file.type);
+    const isValid = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/jpg",
+      "image/svg+xml",
+    ].includes(file.type);
 
     if (file.size > fileSizeLimit) {
       setLogoError("File size must be less than 2MB.");
@@ -78,7 +87,13 @@ function GeneralSettings() {
               source={
                 file.url
                   ? file.url
-                  : ["image/gif", "image/jpeg", "image/png" , "image/jpg" , "image/svg+xml" ].includes(file.type)
+                  : [
+                      "image/gif",
+                      "image/jpeg",
+                      "image/png",
+                      "image/jpg",
+                      "image/svg+xml",
+                    ].includes(file.type)
                   ? window.URL.createObjectURL(file)
                   : NoteIcon
               }
@@ -96,6 +111,7 @@ function GeneralSettings() {
       if (response?.status) {
         const data = response?.notification_settings;
         if (data?.front_logo) {
+          setIsFetching(false);
           setFiles([
             {
               name: data?.front_logo || "",
@@ -104,7 +120,7 @@ function GeneralSettings() {
             },
           ]);
         }
-
+        setFrontLogo(data?.front_show_logo);
         setFrontName(data?.front_title || "");
         setCustomCss(data?.custom_css || "");
         setStorefrontView(data?.storefront_view || "2");
@@ -127,7 +143,6 @@ function GeneralSettings() {
   const handleSave = async () => {
     setIsSaving(true);
     const formdata = new FormData();
-
     if (files.length > 0 && !files[0].url) {
       formdata.append("front_logo", files[0]);
     }
@@ -143,19 +158,17 @@ function GeneralSettings() {
     formdata.append("custom_css", JSON.stringify(customCss));
     formdata.append("storefront_view", storefrontView);
     formdata.append("storefront_css", JSON.stringify(updatedStorefrontCSS));
+    formdata.append("front_show_logo", frontLogo);
 
-    try {
-      const response = await fetchData(
-        getApiURL("save-notification-settings"),
-        formdata
-      );
+    const response = await fetchData(
+      getApiURL("save-notification-settings"),
+      formdata
+    );
 
-      if (response?.status === true) {
-        shopify.toast.show("Settings save successfully!", { duration: 3000 });
-      }
-    } catch (error) {
-      shopify.toast.show(response?.message, { duration: 3000, isError: true });
-    } finally {
+    if (response?.status === true) {
+      setIsSaving(false);
+      shopify.toast.show("Settings save successfully!", { duration: 3000 });
+    } else {
       setIsSaving(false);
       shopify.toast.show(response?.message, { duration: 3000, isError: true });
     }
@@ -286,7 +299,6 @@ function GeneralSettings() {
               action={{
                 content: (
                   <InlineStack gap={200}>
-                    {" "}
                     <svg
                       width="16"
                       height="16"
@@ -325,97 +337,87 @@ function GeneralSettings() {
                     }),
                   }}
                 >
-                  <BlockStack gap={300}>
-                    <Text variant="headingSm" as="h5">
-                      Brand Name
-                    </Text>
-
-                    <TextField
-                      label="Brand Name"
-                      labelHidden
-                      type="text"
-                      autoComplete="off"
-                      requiredIndicator
-                      value={frontName}
-                      onChange={setFrontName}
-                      disabled={data?.plan_details?.name === "Free"}
-                    />
-
-                    <Text variant="headingSm" as="h5">
-                      Logo
-                    </Text>
-
-                    <BlockStack gap={100}>
-                      <DropZone
-                        onDrop={handleDropZoneDrop}
-                        allowMultiple={false}
-                        disabled={data?.plan_details?.name === "Free"}
-                      >
-                        {uploadedFiles}
-                        {fileUpload}
-                      </DropZone>
-                      {logoError && <Text tone="critical">{logoError}</Text>}
-                    </BlockStack>
-
+                  <BlockStack gap={400}>
                     <BlockStack gap={300}>
-                      {/* <Text variant="headingSm" as="h5">
-                    Container Layout
-                  </Text>
-                  <InlineStack gap={400}>
-                    <RadioButton
-                      label="Container"
-                      checked={storefrontView === "1"}
-                      onChange={() => setStorefrontView("1")}
-                    />
-                    <RadioButton
-                      label="Full Container"
-                      checked={storefrontView === "2"}
-                      onChange={() => setStorefrontView("2")}
-                    />
-                  </InlineStack> */}
+                      <Text variant="headingSm" as="h5">
+                        Logo
+                      </Text>
+                      <Checkbox
+                        label="Logo Enable"
+                        checked={frontLogo}
+                        onChange={(val) => setFrontLogo(val)}
+                        disabled={data?.plan_details?.name === "Free"}
+                      />
+                      {frontLogo === true && (
+                        <BlockStack gap={100}>
+                          <DropZone
+                            onDrop={handleDropZoneDrop}
+                            allowMultiple={false}
+                            disabled={data?.plan_details?.name === "Free"}
+                          >
+                            {uploadedFiles}
+                            {fileUpload}
+                          </DropZone>
+                          {logoError && (
+                            <Text tone="critical">{logoError}</Text>
+                          )}
+                        </BlockStack>
+                      )}
 
-                      <BlockStack gap={200}>
-                        <Text variant=" headingSm" fontWeight="semibold">
-                          Header
-                        </Text>
-                        <FormLayout>
-                          <FormLayout.Group condensed>
-                            {SketchPickermarkup(
-                              "textColor",
-                              "Text",
-                              textColor,
-                              setTextColor,
-                              setSelectedPicker
-                            )}
-                            {SketchPickermarkup(
-                              "backgroundColor",
-                              "Background",
-                              backgroundColor,
-                              setBackgroundcolor,
-                              setSelectedPicker
-                            )}
-                          </FormLayout.Group>
-                        </FormLayout>
-                        <FormLayout>
-                          <FormLayout.Group condensed>
-                            {SketchPickermarkup(
-                              "menubackgroundColor",
-                              "Menu Background (Active)",
-                              menuActiveBackground,
-                              seMenuActiveBackground,
-                              setSelectedPicker
-                            )}
-                            {SketchPickermarkup(
-                              "influencerTagebackgroundColor",
-                              "Influencer Label Background",
-                              influncerTagBackground,
-                              setInfluncerTagBackground,
-                              setSelectedPicker
-                            )}
-                          </FormLayout.Group>
-                        </FormLayout>
-                      </BlockStack>
-
+                      <TextField
+                        label="Brand Name"
+                        type="text"
+                        autoComplete="off"
+                        requiredIndicator
+                        value={frontName}
+                        onChange={setFrontName}
+                        disabled={data?.plan_details?.name === "Free"}
+                      />
+                    </BlockStack>
+                    <Divider />
+                    <BlockStack gap={300}>
+                      <Text variant=" headingSm" fontWeight="semibold">
+                        Header
+                      </Text>
+                      <FormLayout>
+                        <FormLayout.Group condensed>
+                          {SketchPickermarkup(
+                            "textColor",
+                            "Text",
+                            textColor,
+                            setTextColor,
+                            setSelectedPicker
+                          )}
+                          {SketchPickermarkup(
+                            "backgroundColor",
+                            "Background",
+                            backgroundColor,
+                            setBackgroundcolor,
+                            setSelectedPicker
+                          )}
+                        </FormLayout.Group>
+                      </FormLayout>
+                      <FormLayout>
+                        <FormLayout.Group condensed>
+                          {SketchPickermarkup(
+                            "menubackgroundColor",
+                            "Menu Background (Active)",
+                            menuActiveBackground,
+                            seMenuActiveBackground,
+                            setSelectedPicker
+                          )}
+                          {SketchPickermarkup(
+                            "influencerTagebackgroundColor",
+                            "Influencer Label Background",
+                            influncerTagBackground,
+                            setInfluncerTagBackground,
+                            setSelectedPicker
+                          )}
+                        </FormLayout.Group>
+                      </FormLayout>
+                    </BlockStack>
+                    <Divider />
+                    <BlockStack gap={300}>
                       <Text variant="headingSm" as="h5">
                         Custom CSS
                       </Text>

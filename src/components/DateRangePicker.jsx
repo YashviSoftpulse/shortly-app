@@ -3,7 +3,7 @@ import { Button, Popover, Box, InlineStack, TextField, OptionList, DatePicker, S
 import moment from "moment";
 import { ArrowRightIcon, CalendarIcon } from "@shopify/polaris-icons";
 
-const DateRangePicker = ({ onDateRangeSelect, value: { start, end } }) => {
+const DateRangePicker = ({ onDateRangeSelect, value: { start, end }, disabled }) => {
   const { mdDown } = useBreakpoints();
   const [popoverActive, setPopoverActive] = useState(false);
   const [startDateInput, setStartDateInput] = useState(start ? moment(start).format("DD MMM YYYY") : moment().subtract(1, 'day').format("DD MMM YYYY"));
@@ -150,6 +150,7 @@ const DateRangePicker = ({ onDateRangeSelect, value: { start, end } }) => {
             icon={CalendarIcon}
             size="slim"
             onClick={() => setPopoverActive(!popoverActive)}
+            disabled={disabled}
           >
             Date Filter : {getButtonLabel()}
           </Button>

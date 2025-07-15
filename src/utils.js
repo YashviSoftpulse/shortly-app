@@ -72,7 +72,7 @@ export const formatNumber = num => {
     const units = ["", "K", "M", "B", "T"];
     let i = 0;
     while (num >= 1000 && i < units.length - 1) num /= 1000, i++;
-    return num.toFixed(1).replace(/\.0$/, '') + units[i];
+   return num.toFixed(2).replace(/\.?0+$/, '') + units[i];
 };
 
 

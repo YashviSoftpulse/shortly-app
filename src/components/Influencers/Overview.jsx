@@ -14,6 +14,7 @@ import {
   IndexTable,
   SkeletonDisplayText,
   InlineGrid,
+  Banner,
 } from "@shopify/polaris";
 import { BarChart, LineChart, SimpleBarChart } from "@shopify/polaris-viz";
 import { useState, useEffect } from "react";
@@ -26,7 +27,6 @@ import { formatDate, formatNumber } from "../../utils";
 
 function Overview({ selectedDates }) {
   const { id } = useParams();
-
   const [isLoading, setIsLoading] = useState(true);
   const [influencerInfo, setInfluencerInfo] = useState();
   const [influencerAnalytics, setInfluencerAnalytics] = useState();
@@ -34,6 +34,7 @@ function Overview({ selectedDates }) {
   const [vistorAnalytics, setVisitorAnalytics] = useState([]);
   const [active, setActive] = useState(false);
   const [storeCurrency, setStoreCurrency] = useState("Rs.");
+  const [planupgrade, setPlanupgrade] = useState(null);
 
   const fetchInfluencers = async () => {
     setIsLoading(true);
@@ -71,28 +72,27 @@ function Overview({ selectedDates }) {
 
       const influencerAnalytics = response?.data;
       setInfluencerAnalytics({
-        total_add_to_cart: influencerAnalytics.total_add_to_cart || "0",
-        total_cancelled_orders:
-          influencerAnalytics.total_cancelled_orders || "0",
-        total_clicks: influencerAnalytics.total_clicks || "0",
-        total_gross_revenue: influencerAnalytics.total_gross_revenue || "0",
-        total_net_revenue: influencerAnalytics.total_net_revenue || "0",
-        total_orders: influencerAnalytics.total_orders || "0",
-        total_products_revenue:
-          influencerAnalytics.total_products_revenue || "0",
-        total_shipping: influencerAnalytics.total_shipping || "0",
-        total_tax: influencerAnalytics.total_tax || "0",
+        total_add_to_cart: influencerAnalytics.total_add_to_cart || 0,
+        total_cancelled_orders: influencerAnalytics.total_cancelled_orders || 0,
+        total_clicks: influencerAnalytics.total_clicks || 0,
+        total_gross_revenue: influencerAnalytics.total_gross_revenue || 0,
+        total_net_revenue: influencerAnalytics.total_net_revenue || 0,
+        total_orders: influencerAnalytics.total_orders || 0,
+        total_products_revenue: influencerAnalytics.total_products_revenue || 0,
+        total_shipping: influencerAnalytics.total_shipping || 0,
+        total_tax: influencerAnalytics.total_tax || 0,
       });
 
       const influencerCommission = response?.commission_summary;
       setInfluencerCommission({
         commission_logs: influencerCommission?.commission_logs,
-        total_commission: influencerCommission?.total_commission || "0",
+        total_commission: influencerCommission?.total_commission || 0,
       });
 
       setStoreCurrency(response?.store_currency);
     } else {
       setVisitorAnalytics([]);
+      setPlanupgrade(response);
     }
     setIsLoading(false);
   };
@@ -262,10 +262,77 @@ function Overview({ selectedDates }) {
           </BlockStack>
         </>
       ) : (
-        <div className="OverviewPageInfluncer">
-          <BlockStack gap="400">
-            <>
-              <BlockStack gap="200">
+        <Layout>
+          {planupgrade?.status === false && (
+            <Layout.Section>
+              <Banner
+                title="Premium Features Unlocked"
+                action={{
+                  content: (
+                    <InlineStack gap={200}>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                          fill="#FFD700"
+                          stroke="#FFD700"
+                          strokeWidth="2"
+                        />
+                      </svg>{" "}
+                      Upgrade plan
+                    </InlineStack>
+                  ),
+                  url: `/plans${window.location.search}`,
+                }}
+                status="info"
+              >
+                {planupgrade.message}
+              </Banner>
+            </Layout.Section>
+          )}
+          <Layout.Section>
+            {planupgrade?.status === false && (
+              <div className="premium-plan" style={{ top: "90% !important" }}>
+                <p>
+                  Get more insight with{" "}
+                  <Button
+                    size="slim"
+                    onClick={() => navigate(`/plans${window.location.search}`)}
+                    icon={
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M3 6L7 12L12 6L17 12L21 6V20H3V6Z"
+                          fill="#FFD700"
+                          stroke="#FFD700"
+                          strokeWidth="2"
+                        />
+                      </svg>
+                    }
+                  >
+                    Upgrade Plan
+                  </Button>
+                </p>
+              </div>
+            )}
+            <div
+              className="Polaris-Layout"
+              style={{
+                ...(planupgrade?.status === false && {
+                  filter: "blur(2px)",
+                  opacity: 0.5,
+                }),
+              }}
+            >
+              <Layout.Section>
                 <div className="influencerPlatform">
                   <Card>
                     <InlineStack gap={200}>
@@ -274,20 +341,20 @@ function Overview({ selectedDates }) {
                           label: "Total Clicks",
                           value:
                             formatNumber(influencerAnalytics?.total_clicks) ||
-                            "0",
+                            0,
                         },
                         {
                           label: "Total Add to Cart ",
                           value:
                             formatNumber(
                               influencerAnalytics?.total_add_to_cart
-                            ) || "0",
+                            ) || 0,
                         },
                         {
                           label: "Total Orders",
                           value:
                             formatNumber(influencerAnalytics?.total_orders) ||
-                            "0",
+                            0,
                         },
                         {
                           label: "Commissions",
@@ -295,7 +362,7 @@ function Overview({ selectedDates }) {
                             storeCurrency +
                               formatNumber(
                                 influencerCommission?.total_commission
-                              ) || "0",
+                              ) || 0,
                         },
                       ].map(({ label, value }) => (
                         <>
@@ -324,423 +391,436 @@ function Overview({ selectedDates }) {
                     </InlineStack>
                   </Card>
                 </div>
-              </BlockStack>
-
-              <Layout>
-                <Layout.Section variant="oneHalf">
-                  <BlockStack gap="200">
-                    <div className="influencerDashboardCards">
-                      {[
-                        {
-                          label: "Cancelled Orders",
-                          value:
+              </Layout.Section>
+              <Layout.Section variant="oneHalf">
+                <BlockStack gap="200">
+                  <div className="influencerDashboardCards">
+                    {[
+                      {
+                        label: "Cancelled Orders",
+                        value:
+                          formatNumber(
+                            influencerAnalytics?.total_cancelled_orders
+                          ) || "0",
+                      },
+                      {
+                        label: "Product Sales",
+                        value:
+                          storeCurrency +
                             formatNumber(
-                              influencerAnalytics?.total_cancelled_orders
+                              influencerAnalytics?.total_products_revenue
                             ) || "0",
-                        },
-                        {
-                          label: "Product Sales",
-                          value:
-                            storeCurrency +
-                              formatNumber(
-                                influencerAnalytics?.total_products_revenue
-                              ) || "0",
-                        },
+                      },
 
-                        {
-                          label: "Total Taxes",
-                          value:
-                            storeCurrency +
-                              formatNumber(influencerAnalytics?.total_tax) ||
-                            "0",
-                        },
-                        {
-                          label: "Total Shipping",
-                          value:
-                            storeCurrency +
-                              formatNumber(
-                                influencerAnalytics?.total_shipping
-                              ) || "0",
-                        },
-                        {
-                          label: "Gross Revenue",
-                          value:
-                            storeCurrency +
-                              formatNumber(
-                                influencerAnalytics?.total_gross_revenue
-                              ) || "0",
-                        },
+                      {
+                        label: "Total Taxes",
+                        value:
+                          storeCurrency +
+                            formatNumber(influencerAnalytics?.total_tax) || "0",
+                      },
+                      {
+                        label: "Total Shipping",
+                        value:
+                          storeCurrency +
+                            formatNumber(influencerAnalytics?.total_shipping) ||
+                          "0",
+                      },
+                      {
+                        label: "Gross Revenue",
+                        value:
+                          storeCurrency +
+                            formatNumber(
+                              influencerAnalytics?.total_gross_revenue
+                            ) || "0",
+                      },
 
-                        {
-                          label: "Net Revenue",
-                          value:
-                            storeCurrency +
-                              formatNumber(
-                                influencerAnalytics?.total_net_revenue
-                              ) || "0",
-                        },
-                      ].map(({ label, value }) => (
-                        <Card key={label}>
-                          <BlockStack gap={200}>
-                            {[
-                              "Net Revenue",
-                              "Gross Revenue",
-                              "Product Sales",
-                            ].includes(label) ? (
-                              <Tooltip
-                                content={
-                                  label === "Gross Revenue"
-                                    ? "Sum of all orders"
-                                    : label === "Net Revenue"
-                                    ? "Net revenue = Gross revenue – Cancelled orders"
-                                    : label === "Product Sales"
-                                    ? "Total revenue generated from product sales (excluding tax & shipping)."
-                                    : ""
-                                }
-                              >
-                                <InlineStack gap={100} align="start">
-                                  <Text
-                                    as="p"
-                                    fontWeight="bold"
-                                    tone="subdued"
-                                    variant="bodyMd"
-                                  >
-                                    {label}
-                                  </Text>
-                                  <Icon source={InfoIcon} tone="subdued" />
-                                </InlineStack>
-                              </Tooltip>
-                            ) : (
-                              <Text
-                                as="p"
-                                fontWeight="bold"
-                                tone="subdued"
-                                variant="bodyMd"
-                              >
-                                {label}
-                              </Text>
-                            )}
-
-                            <Text
-                              as="h2"
-                              tone="base"
-                              variant="bodyLg"
-                              fontWeight="bold"
-                            >
-                              {value}
-                            </Text>
-                          </BlockStack>
-                        </Card>
-                      ))}
-                    </div>
-                  </BlockStack>
-                </Layout.Section>
-
-                <Layout.Section variant="oneHalf">
-                  <Card>
-                    <BlockStack gap="200">
-                      <InlineStack align="space-between">
-                        <Text variant="bodyMd">Influencer Name</Text>
-                        <Text variant="bodySm" as="h5">
-                          {influencerInfo?.first_name}
-                          {influencerInfo?.last_name || "-"}
-                        </Text>
-                      </InlineStack>
-
-                      <InlineStack align="space-between">
-                        <Text variant="bodyMd">Last Update</Text>
-                        <Text variant="bodySm">
-                          {moment(influencerInfo?.created_at).format(
-                            "DD MMM YYYY"
-                          ) || "-"}
-                        </Text>
-                      </InlineStack>
-
-                      <InlineStack align="space-between">
-                        <Text variant="bodyMd">Email</Text>
-                        <Text variant="bodySm">
-                          {influencerInfo?.email || "-"}
-                        </Text>
-                      </InlineStack>
-
-                      <InlineStack align="space-between">
-                        <Text variant="bodyMd">Phone</Text>
-                        <Text variant="bodySm">
-                          {influencerInfo?.phone || "-"}
-                        </Text>
-                      </InlineStack>
-
-                      <InlineStack align="space-between">
-                        <Text variant="bodyMd">Status</Text>
-                        <InlineStack align="end">
-                          {influencerInfo?.status ? (
-                            <Badge
-                              tone={
-                                influencerInfo.status.toLowerCase() === "active"
-                                  ? "success"
-                                  : "critical"
-                              }
-                            >
-                              {influencerInfo.status.charAt(0).toUpperCase() +
-                                influencerInfo.status.slice(1).toLowerCase()}
-                            </Badge>
-                          ) : (
-                            <Text variant="bodyMd">-</Text>
-                          )}
-                        </InlineStack>
-                      </InlineStack>
-
-                      <InlineStack align="space-between">
-                        <Text variant="bodyMd">Commission Rule</Text>
-                        <Text tone="attention">
-                          {influencerInfo?.commission_value
-                            ? `${influencerInfo.commission_value}${
-                                influencerInfo.commission_type === "2"
-                                  ? "%"
-                                  : influencerInfo.commission_type === "3"
-                                  ? ` ${storeCurrency}`
+                      {
+                        label: "Net Revenue",
+                        value:
+                          storeCurrency +
+                            formatNumber(
+                              influencerAnalytics?.total_net_revenue
+                            ) || "0",
+                      },
+                    ].map(({ label, value }) => (
+                      <Card key={label}>
+                        <BlockStack gap={200}>
+                          {[
+                            "Net Revenue",
+                            "Gross Revenue",
+                            "Product Sales",
+                            "Cancelled Orders",
+                          ].includes(label) ? (
+                            <Tooltip
+                              content={
+                                label === "Gross Revenue"
+                                  ? "Sum of all orders"
+                                  : label === "Net Revenue"
+                                  ? "Net revenue = Gross revenue – Cancelled orders"
+                                  : label === "Product Sales"
+                                  ? "Total revenue generated from product sales (excluding tax & shipping)."
+                                  : label === "Cancelled Orders"
+                                  ? "Total number of canceled orders in the selected period."
                                   : ""
-                              }`
-                            : "-"}
-                        </Text>
-                      </InlineStack>
-
-                      <InlineStack align="space-between">
-                        <Text variant="bodyMd">Commission On</Text>
-                        <Text tone="attention">
-                          {influencerInfo?.commission_based_on
-                            ? influencerInfo.commission_based_on.toLowerCase() ===
-                              "1"
-                              ? "Only Product Price"
-                              : influencerInfo.commission_based_on.toLowerCase() ===
-                                "2"
-                              ? "Product Price + Tax"
-                              : influencerInfo.commission_based_on.toLowerCase() ===
-                                "3"
-                              ? "Product Price + Shipping"
-                              : influencerInfo.commission_based_on.toLowerCase() ===
-                                "4"
-                              ? "Total Order (Product + Shipping + Tax)"
-                              : "-"
-                            : "-"}
-                        </Text>
-                      </InlineStack>
-
-                      <InlineStack align="space-between">
-                        <Text variant="bodyMd">Commission Summary</Text>
-                        <Button
-                          onClick={handleChange}
-                          variant="plain"
-                          disabled={
-                            !influencerCommission ||
-                            influencerCommission?.commission_logs === 0
-                          }
-                        >
-                          View
-                        </Button>
-                      </InlineStack>
-
-                      <Modal
-                        open={active}
-                        onClose={handleChange}
-                        title="Commission Summary"
-                        size="large"
-                      >
-                        <div className="programTableName">
-                          <Modal.Section>
-                            <IndexTable
-                              resourceName={{
-                                singular: "commission",
-                                plural: "commissions",
-                              }}
-                              itemCount={
-                                influencerCommission?.commission_logs?.length ||
-                                0
                               }
-                              headings={[
-                                { title: "Commission" },
-                                { title: "Commission On" },
-                                { title: "Created At" },
-                                { title: "From Date" },
-                                { title: "To Date" },
-                                { title: "Total Commission", alignment: "end" },
-                              ]}
-                              selectable={false}
                             >
-                              {influencerCommission?.commission_logs?.map(
-                                (commission, index) => {
-                                  const commissionValue =
-                                    commission?.commission_value
-                                      ? `${commission?.commission_value}${
-                                          commission?.commission_type === "2"
-                                            ? "%"
-                                            : commission?.commission_type ===
-                                              "3"
-                                            ? " GBP"
-                                            : ""
-                                        }`
-                                      : "0";
-
-                                  const commissionOn =
-                                    commission?.commission_based_on
-                                      ? commission?.commission_based_on.toLowerCase() ===
-                                        "1"
-                                        ? "Only Product Price"
-                                        : commission?.commission_based_on.toLowerCase() ===
-                                          "2"
-                                        ? "Product Price + Tax"
-                                        : commission?.commission_based_on.toLowerCase() ===
-                                          "3"
-                                        ? "Product Price + Shipping"
-                                        : commission?.commission_based_on.toLowerCase() ===
-                                          "4"
-                                        ? "Total Order (Product + Shipping + Tax)"
-                                        : "-"
-                                      : "1";
-
-                                  return (
-                                    <IndexTable.Row
-                                      id={index.toString()}
-                                      key={index}
-                                      position={index}
-                                    >
-                                      <IndexTable.Cell>
-                                        {commissionValue}
-                                      </IndexTable.Cell>
-                                      <IndexTable.Cell>
-                                        {commissionOn}
-                                      </IndexTable.Cell>
-                                      <IndexTable.Cell>
-                                        {moment(
-                                          formatDate(commission?.created_at)
-                                        ).format("DD MMM YYYY")}
-                                      </IndexTable.Cell>
-                                      <IndexTable.Cell>
-                                        {moment(
-                                          formatDate(commission?.from_date)
-                                        ).format("DD MMM YYYY")}
-                                      </IndexTable.Cell>
-                                      <IndexTable.Cell>
-                                        {moment(
-                                          formatDate(
-                                            commission?.to_date || "current"
-                                          )
-                                        ).format("DD MMM YYYY")}
-                                      </IndexTable.Cell>
-                                      <IndexTable.Cell>
-                                        <InlineStack align="end">
-                                          {storeCurrency +
-                                            formatNumber(
-                                              commission?.total_commission_during_this
-                                            )}
-                                        </InlineStack>
-                                      </IndexTable.Cell>
-                                    </IndexTable.Row>
-                                  );
-                                }
-                              )}
-                            </IndexTable>
-                          </Modal.Section>
-                        </div>
-
-                        {/* Footer */}
-                        <div
-                          style={{
-                            borderTop: "1px solid #E1E3E5",
-                            backgroundColor: "#f7f7f7",
-                            padding: "1rem 0.7rem",
-                          }}
-                        >
-                          <InlineStack align="space-between">
-                            <Text variant="bodyLg" fontWeight="bold">
-                              Total Commission
+                              <InlineStack gap={100} align="start">
+                                <Text
+                                  as="p"
+                                  fontWeight="bold"
+                                  tone="subdued"
+                                  variant="bodyMd"
+                                >
+                                  {label}
+                                </Text>
+                                <Icon source={InfoIcon} tone="subdued" />
+                              </InlineStack>
+                            </Tooltip>
+                          ) : (
+                            <Text
+                              as="p"
+                              fontWeight="bold"
+                              tone="subdued"
+                              variant="bodyMd"
+                            >
+                              {label}
                             </Text>
-                            <Text variant="bodyLg" fontWeight="bold">
-                              {storeCurrency +
-                                formatNumber(
-                                  influencerCommission?.total_commission
-                                )}
-                            </Text>
-                          </InlineStack>
-                        </div>
-                      </Modal>
-                    </BlockStack>
-                  </Card>
-                </Layout.Section>
-              </Layout>
-            </>
+                          )}
 
-            <InlineStack gap={400} align="space-between">
-              <InlineStack gap={200} blockAlign="center">
-                <Icon source={ChartVerticalFilledIcon} tone="base" />
-                <Text variant="bodyLg" as="h3" fontWeight="bold">
-                  Analytics
-                </Text>
-              </InlineStack>
-            </InlineStack>
-
-            <Layout>
-              <Layout.Section>
+                          <Text
+                            as="h2"
+                            tone="base"
+                            variant="bodyLg"
+                            fontWeight="bold"
+                          >
+                            {value}
+                          </Text>
+                        </BlockStack>
+                      </Card>
+                    ))}
+                  </div>
+                </BlockStack>
+              </Layout.Section>
+              <Layout.Section variant="oneHalf">
                 <Card>
-                  <BlockStack gap={300}>
-                    <Text variant="bodyMd" fontWeight="bold">
-                      Click Analytics
-                    </Text>
-                    <div className="Polaris-Box">
-                      {initClickAnalyticsChart()}
-                    </div>
+                  <BlockStack gap="200">
+                    <InlineStack align="space-between">
+                      <Text variant="bodyMd">Influencer Name</Text>
+                      <Text variant="bodySm" as="h5">
+                        {influencerInfo?.first_name}
+                        {influencerInfo?.last_name || "-"}
+                      </Text>
+                    </InlineStack>
+
+                    <InlineStack align="space-between">
+                      <Text variant="bodyMd">Last Update</Text>
+                      <Text variant="bodySm">
+                        {moment(influencerInfo?.created_at).format(
+                          "DD MMM YYYY"
+                        ) || "-"}
+                      </Text>
+                    </InlineStack>
+
+                    <InlineStack align="space-between">
+                      <Text variant="bodyMd">Email</Text>
+                      <Text variant="bodySm">
+                        {influencerInfo?.email || "-"}
+                      </Text>
+                    </InlineStack>
+
+                    <InlineStack align="space-between">
+                      <Text variant="bodyMd">Phone</Text>
+                      <Text variant="bodySm">
+                        {influencerInfo?.phone || "-"}
+                      </Text>
+                    </InlineStack>
+
+                    <InlineStack align="space-between">
+                      <Text variant="bodyMd">Status</Text>
+                      <InlineStack align="end" gap={100}>
+                        {influencerInfo?.cstatus && (
+                          <Badge
+                            tone={
+                              influencerInfo.cstatus.toLowerCase() ===
+                              "approved"
+                                ? "success"
+                                : "warning"
+                            }
+                          >
+                            {influencerInfo.cstatus.charAt(0).toUpperCase() +
+                              influencerInfo.cstatus.slice(1).toLowerCase()}
+                          </Badge>
+                        )}
+
+                        {influencerInfo?.status ? (
+                          <Badge
+                            tone={
+                              influencerInfo.status.toLowerCase() === "active"
+                                ? "success"
+                                : "critical"
+                            }
+                          >
+                            {influencerInfo.status.charAt(0).toUpperCase() +
+                              influencerInfo.status.slice(1).toLowerCase()}
+                          </Badge>
+                        ) : (
+                          <Text variant="bodyMd">-</Text>
+                        )}
+                      </InlineStack>
+                    </InlineStack>
+
+                    <InlineStack align="space-between">
+                      <Text variant="bodyMd">Commission Rule</Text>
+                      <Text tone="attention">
+                        {influencerInfo?.commission_value
+                          ? `${
+                              influencerInfo.commission_type === "2"
+                                ? `${influencerInfo.commission_value}%`
+                                : influencerInfo.commission_type === "3"
+                                ? ` ${storeCurrency} ${influencerInfo.commission_value}`
+                                : ""
+                            }`
+                          : "-"}
+                      </Text>
+                    </InlineStack>
+
+                    <InlineStack align="space-between">
+                      <Text variant="bodyMd">Commission On</Text>
+                      <Text tone="attention">
+                        {influencerInfo?.commission_based_on
+                          ? influencerInfo.commission_based_on.toLowerCase() ===
+                            "1"
+                            ? "Only Product Price"
+                            : influencerInfo.commission_based_on.toLowerCase() ===
+                              "2"
+                            ? "Product Price + Tax"
+                            : influencerInfo.commission_based_on.toLowerCase() ===
+                              "3"
+                            ? "Product Price + Shipping"
+                            : influencerInfo.commission_based_on.toLowerCase() ===
+                              "4"
+                            ? "Total Order (Product + Shipping + Tax)"
+                            : "-"
+                          : "-"}
+                      </Text>
+                    </InlineStack>
+
+                    <InlineStack align="space-between">
+                      <Text variant="bodyMd">Commission Summary</Text>
+                      <Button
+                        onClick={handleChange}
+                        variant="plain"
+                        disabled={
+                          !influencerCommission ||
+                          influencerCommission?.commission_logs === 0
+                        }
+                      >
+                        View
+                      </Button>
+                    </InlineStack>
+
+                    <Modal
+                      open={active}
+                      onClose={handleChange}
+                      title="Commission Summary"
+                      size="large"
+                    >
+                      <div className="programTableName">
+                        <Modal.Section>
+                          <IndexTable
+                            resourceName={{
+                              singular: "commission",
+                              plural: "commissions",
+                            }}
+                            itemCount={
+                              influencerCommission?.commission_logs?.length || 0
+                            }
+                            headings={[
+                              { title: "Commission" },
+                              { title: "Commission On" },
+                              { title: "Created At" },
+                              { title: "From Date" },
+                              { title: "To Date" },
+                              { title: "Total Commission", alignment: "end" },
+                            ]}
+                            selectable={false}
+                          >
+                            {influencerCommission?.commission_logs?.map(
+                              (commission, index) => {
+                                const commissionValue =
+                                  commission?.commission_value
+                                    ? commission?.commission_type === "2"
+                                      ? `${commission.commission_value}%`
+                                      : commission?.commission_type === "3"
+                                      ? `Rs. ${commission.commission_value}`
+                                      : commission.commission_value
+                                    : "0";
+
+                                const commissionOn =
+                                  commission?.commission_based_on
+                                    ? commission?.commission_based_on.toLowerCase() ===
+                                      "1"
+                                      ? "Only Product Price"
+                                      : commission?.commission_based_on.toLowerCase() ===
+                                        "2"
+                                      ? "Product Price + Tax"
+                                      : commission?.commission_based_on.toLowerCase() ===
+                                        "3"
+                                      ? "Product Price + Shipping"
+                                      : commission?.commission_based_on.toLowerCase() ===
+                                        "4"
+                                      ? "Total Order (Product + Shipping + Tax)"
+                                      : "-"
+                                    : "1";
+
+                                return (
+                                  <IndexTable.Row
+                                    id={index.toString()}
+                                    key={index}
+                                    position={index}
+                                  >
+                                    <IndexTable.Cell>
+                                      {commissionValue}
+                                    </IndexTable.Cell>
+                                    <IndexTable.Cell>
+                                      {commissionOn}
+                                    </IndexTable.Cell>
+                                    <IndexTable.Cell>
+                                      {commission?.created_at === null
+                                        ? "--"
+                                        : moment(
+                                            formatDate(commission?.created_at)
+                                          ).format("DD MMM YYYY")}
+                                    </IndexTable.Cell>
+                                    <IndexTable.Cell>
+                                      {commission?.from_date === null
+                                        ? "--"
+                                        : moment(
+                                            formatDate(commission?.from_date)
+                                          ).format("DD MMM YYYY")}
+                                    </IndexTable.Cell>
+                                    <IndexTable.Cell>
+                                      {commission?.to_date === null
+                                        ? "--"
+                                        : moment(
+                                            formatDate(commission?.to_date)
+                                          ).format("DD MMM YYYY")}
+                                    </IndexTable.Cell>
+                                    <IndexTable.Cell>
+                                      <InlineStack align="end">
+                                        {storeCurrency +
+                                          formatNumber(
+                                            commission?.total_commission_during_this
+                                          )}
+                                      </InlineStack>
+                                    </IndexTable.Cell>
+                                  </IndexTable.Row>
+                                );
+                              }
+                            )}
+                          </IndexTable>
+                        </Modal.Section>
+                      </div>
+
+                      {/* Footer */}
+                      <div
+                        style={{
+                          borderTop: "1px solid #E1E3E5",
+                          backgroundColor: "#f7f7f7",
+                          padding: "1rem 0.7rem",
+                        }}
+                      >
+                        <InlineStack align="space-between">
+                          <Text variant="bodyLg" fontWeight="bold">
+                            Total Commission
+                          </Text>
+                          <Text variant="bodyLg" fontWeight="bold">
+                            {storeCurrency +
+                              influencerCommission?.total_commission}
+                          </Text>
+                        </InlineStack>
+                      </div>
+                    </Modal>
                   </BlockStack>
                 </Card>
               </Layout.Section>
-
               <Layout.Section>
-                <Layout>
-                  <Layout.Section variant="oneHalf">
-                    <Card>
-                      <BlockStack gap={200}>
-                        <InlineStack gap={100}>
+                <BlockStack gap={300}>
+                  <InlineStack gap={400} align="space-between">
+                    <InlineStack gap={200} blockAlign="center">
+                      <Icon source={ChartVerticalFilledIcon} tone="base" />
+                      <Text variant="bodyLg" as="h3" fontWeight="bold">
+                        Analytics
+                      </Text>
+                    </InlineStack>
+                  </InlineStack>
+                  <Layout>
+                    <Layout.Section>
+                      <Card>
+                        <BlockStack gap={300}>
                           <Text variant="bodyMd" fontWeight="bold">
-                            Devices
+                            Click Analytics
                           </Text>
-                          <Tooltip
-                            content={`The Device Analytics of Total clicks as well as Total Add to cart`}
-                          >
-                            <Icon tone="base" source={InfoIcon} />
-                          </Tooltip>
-                        </InlineStack>
+                          <div className="Polaris-Box">
+                            {initClickAnalyticsChart()}
+                          </div>
+                        </BlockStack>
+                      </Card>
+                    </Layout.Section>
 
-                        <div className="Polaris-Box">
-                          {initDeviceUsageChart()}
-                        </div>
-                      </BlockStack>
-                    </Card>
-                  </Layout.Section>
+                    <Layout.Section>
+                      <Layout>
+                        <Layout.Section variant="oneHalf">
+                          <Card>
+                            <BlockStack gap={200}>
+                              <InlineStack gap={100}>
+                                <Text variant="bodyMd" fontWeight="bold">
+                                  Devices
+                                </Text>
+                                <Tooltip
+                                  content={`The Device Analytics of Total clicks as well as Total Add to cart`}
+                                >
+                                  <Icon tone="base" source={InfoIcon} />
+                                </Tooltip>
+                              </InlineStack>
 
-                  <Layout.Section variant="oneHalf">
-                    <Card>
-                      <BlockStack gap={300}>
-                        <InlineStack gap={100}>
-                          <Text variant="bodyMd" fontWeight="bold">
-                            Platforms
-                          </Text>
-                          <Tooltip
-                            content={`The Platform Analytics of Total clicks as well as Total Add to cart`}
-                          >
-                            <Icon tone="base" source={InfoIcon} />
-                          </Tooltip>
-                        </InlineStack>
+                              <div className="Polaris-Box">
+                                {initDeviceUsageChart()}
+                              </div>
+                            </BlockStack>
+                          </Card>
+                        </Layout.Section>
 
-                        <div className="Polaris-Box">
-                          {PlatformsAnalyticsChart()}
-                        </div>
-                      </BlockStack>
-                    </Card>
-                  </Layout.Section>
-                </Layout>
+                        <Layout.Section variant="oneHalf">
+                          <Card>
+                            <BlockStack gap={300}>
+                              <InlineStack gap={100}>
+                                <Text variant="bodyMd" fontWeight="bold">
+                                  Platforms
+                                </Text>
+                                <Tooltip
+                                  content={`The Platform Analytics of Total clicks as well as Total Add to cart`}
+                                >
+                                  <Icon tone="base" source={InfoIcon} />
+                                </Tooltip>
+                              </InlineStack>
+
+                              <div className="Polaris-Box">
+                                {PlatformsAnalyticsChart()}
+                              </div>
+                            </BlockStack>
+                          </Card>
+                        </Layout.Section>
+                      </Layout>
+                    </Layout.Section>
+                  </Layout>
+                </BlockStack>
               </Layout.Section>
-            </Layout>
-          </BlockStack>
-        </div>
+            </div>
+          </Layout.Section>
+          <Layout.Section></Layout.Section>
+          <Layout.Section></Layout.Section>
+        </Layout>
       )}
     </>
   );

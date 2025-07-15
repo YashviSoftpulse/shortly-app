@@ -25,11 +25,13 @@ import {
   BlockStack,
   Bleed,
   Box,
+  Icon,
 } from "@shopify/polaris";
 import {
   DeleteIcon,
   EditIcon,
   ExchangeIcon,
+  InfoIcon,
   ViewIcon,
 } from "@shopify/polaris-icons";
 import { fetchData, getApiURL } from "../action";
@@ -63,7 +65,7 @@ function Influencers() {
   const tabs = [
     { id: "all", content: "All", panelID: "all-content" },
     { id: "active", content: "Active", panelID: "active-content" },
-    { id: "deactive", content: "Deactive", panelID: "deactive-content" },
+    { id: "inactive", content: "Inactive", panelID: "inactive-content" },
     { id: "pending", content: "Pending", panelID: "pending-content" },
   ];
 
@@ -90,7 +92,6 @@ function Influencers() {
       }
       setIsLoading(false);
     };
-
     fetchInfluencers();
   }, []);
 
@@ -117,21 +118,13 @@ function Influencers() {
     return influencers.map((inf) => ({
       id: inf.id,
       name: `${inf.first_name} ${inf.last_name}`,
-      commission:
-        inf.commission_type === "1"
-          ? 0
-          : `${inf.commission_value}${
-              inf.commission_type === "2"
-                ? "%"
-                : inf.commission_type === "3"
-                ? ` ${storeCurrency}`
-                : ""
-            }`,
+      commission: inf.commission_value,
       cstatus: inf.cstatus,
       status: inf.status,
       applicationTime: inf.updated_at || inf.created_at || "—",
       orders: 0,
       revenue: 0,
+      commission_type: inf.commission_type,
     }));
   }, [influencers]);
 
@@ -307,7 +300,18 @@ function Influencers() {
   };
 
   const rowMarkup = paginatedData.map(
-    ({ id, name, commission, cstatus, status, applicationTime }, index) => (
+    (
+      {
+        id,
+        name,
+        commission,
+        cstatus,
+        status,
+        applicationTime,
+        commission_type,
+      },
+      index
+    ) => (
       <IndexTable.Row
         id={id}
         key={id}
@@ -331,7 +335,15 @@ function Influencers() {
           </Text>
         </IndexTable.Cell>
 
-        <IndexTable.Cell>{commission}</IndexTable.Cell>
+        <IndexTable.Cell>
+          {commission_type === "1"
+            ? 0
+            : commission_type === "2"
+            ? `${commission}%`
+            : commission_type === "3"
+            ? `${storeCurrency} ${commission} `
+            : ""}
+        </IndexTable.Cell>
 
         <IndexTable.Cell>
           <Badge tone={cstatus === "pending" ? "warning" : "success"}>
@@ -354,7 +366,7 @@ function Influencers() {
         </IndexTable.Cell>
 
         <IndexTable.Cell>
-          <InlineStack gap="200" align="center">
+          <InlineStack gap="200" align="end">
             {cstatus === "pending" && (
               <Tooltip content="Re-invite">
                 <Button
@@ -363,6 +375,7 @@ function Influencers() {
                     regenrateLink(id), setLoadingRowId(id);
                   }}
                   loading={loadingRowId === id}
+                  disabled={data?.plan_details?.name === "Free"}
                 />
               </Tooltip>
             )}
@@ -374,6 +387,7 @@ function Influencers() {
                     `/influencers/dashboard/${id}${window.location.search}`
                   )
                 }
+                disabled={data?.plan_details?.name === "Free"}
                 accessibilityLabel="View Influencer"
               />
             </Tooltip>
@@ -382,6 +396,7 @@ function Influencers() {
                 icon={EditIcon}
                 onClick={() => handleEdit(id)}
                 accessibilityLabel="Edit Influencer"
+                disabled={data?.plan_details?.name === "Free"}
               />
             </Tooltip>
 
@@ -400,23 +415,24 @@ function Influencers() {
   );
 
   const options = [
-    { label: "Newest", value: "newest" },
-    { label: "Oldest", value: "oldest" },
+    { label: "Newest to Oldest", value: "newest" },
+    { label: "Oldest to Newest", value: "oldest" },
     { label: "First name A–Z", value: "firstNameAlpha" },
     { label: "First name Z–A", value: "firstNameReverseAlpha" },
   ];
 
   const handleInviteClick = () => {
-    console.log("data", data);
     if (data?.plan_details?.name == "Free") {
       setShowUpgradeModal(true);
     } else {
       setShowUpgradeModal(false);
-     navigate({
-  pathname: '/influencer/invite',
-  search: window.location.search,
-}, { state: { storeCurrency } });
-
+      navigate(
+        {
+          pathname: "/influencer/invite",
+          search: window.location.search,
+        },
+        { state: { storeCurrency } }
+      );
     }
   };
 
@@ -483,7 +499,11 @@ function Influencers() {
               You can now manage your affiliate links, track performance
               metrics, and stay up to date with your campaign activity through
               your personalized influencer dashboard. To access it, please{" "}
-              <Link url={dashboardLink} external>
+              <Link
+                url={dashboardLink}
+                external
+                disabled={data?.plan_details?.name === "Free"}
+              >
                 click here
               </Link>
               .
@@ -518,7 +538,7 @@ function Influencers() {
                 </div>
                 <div style={{ paddingLeft: "10px" }}>
                   <Select
-                    label="Sort by"
+                    label="Sort by :"
                     labelInline
                     options={options}
                     onChange={handleSelectChange}
@@ -579,10 +599,14 @@ function Influencers() {
                     headings={[
                       { title: "Name", isSortable: true },
                       { title: "Commission" },
-                      { title: "Cooperation Status" },
+                      {
+                        title: "Cooperation Status",
+                        tooltipContent:
+                          "Weather the influencer have accepted or not.",
+                      },
                       { title: "Application Time" },
                       { title: "Status" },
-                      { title: "Actions", alignment: "center" },
+                      { title: "Actions", alignment: "end" },
                     ]}
                     sortDirection={sortDirection}
                     sortColumnIndex={sortColumnIndex}

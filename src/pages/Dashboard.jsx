@@ -61,9 +61,8 @@ function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState([]);
   const [htmlContent, setHtmlContent] = useState("");
-  const [storeCurrency, setStoreCurrency] = useState();
+  const [storeCurrency, setStoreCurrency] = useState("Rs.");
   const navigate = useNavigate();
-
   const { data, loading, error } = useApiData();
   const handleDateRangeChange = (value) => {
     if (value && value.start && value.end) {
@@ -431,7 +430,7 @@ function Dashboard() {
                     <SkeletonBodyText />
                   ) : (
                     <Text as="h4" variant="headingLg">
-                      {formatNumber(vistorAnalytics?.total_clicks)}
+                      {formatNumber(vistorAnalytics?.total_clicks) || 0}
                     </Text>
                   )}
                 </BlockStack>
@@ -488,7 +487,7 @@ function Dashboard() {
                   </Text>
 
                   <Text as="h4" variant="headingLg">
-                    {formatNumber(vistorAnalytics?.total_add_to_cart)}
+                    {formatNumber(vistorAnalytics?.total_add_to_cart) || 0}
                   </Text>
                 </InlineGrid>
               </div>
@@ -544,7 +543,7 @@ function Dashboard() {
                   </Text>
 
                   <Text as="h4" variant="headingLg">
-                    {formatNumber(vistorAnalytics?.total_checkout)}
+                    {formatNumber(vistorAnalytics?.total_checkout) || 0}
                   </Text>
                 </BlockStack>
               </div>
@@ -598,9 +597,12 @@ function Dashboard() {
                   <Text as="h2" tone="subdued" variant="headingSm">
                     TOTAL SALES
                   </Text>
-
+                  
                   <Text as="h4" variant="headingLg">
-                    {storeCurrency + formatNumber(vistorAnalytics?.total_sales)}
+                    {storeCurrency +
+                      (vistorAnalytics?.total_sales === undefined
+                        ? 0
+                        : formatNumber(vistorAnalytics?.total_sales)) || 0}
                   </Text>
                 </BlockStack>
               </div>
@@ -649,7 +651,7 @@ function Dashboard() {
                   ...(!data?.plan_details?.features
                     ?.click_analytics_dashboard && {
                     filter: "blur(3px)",
-                    opacity: 0,
+                    opacity: 0.2,
                     pointerEvents: "none",
                   }),
                 }}

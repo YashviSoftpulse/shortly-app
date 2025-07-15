@@ -77,20 +77,23 @@ const Listing = () => {
       .writeText(text)
       .then(() => {
         // Show checkmark icon immediately for better UX
-        setCopiedItems(prev => ({ ...prev, [itemId]: true }));
-        
+        setCopiedItems((prev) => ({ ...prev, [itemId]: true }));
+
         // Show toast notification
         shopify.toast.show("Copied to Clipboard", { duration: 3000 });
-        
+
         // Return to clipboard icon after 1.5 seconds (faster response)
         setTimeout(() => {
-          setCopiedItems(prev => ({ ...prev, [itemId]: false }));
+          setCopiedItems((prev) => ({ ...prev, [itemId]: false }));
         }, 1500);
       })
       .catch((err) => {
         console.error("Failed to copy: ", err);
         // Show error toast if copy fails
-        shopify.toast.show("Failed to copy to clipboard", { duration: 3000, isError: true });
+        shopify.toast.show("Failed to copy to clipboard", {
+          duration: 3000,
+          isError: true,
+        });
       });
   };
 
@@ -112,7 +115,8 @@ const Listing = () => {
       panelID: "collection-list-content",
     },
     (SHOP === "shortly-app-demo.myshopify.com" ||
-      SHOP === "44d065-83.myshopify.com") && {
+      SHOP === "44d065-83.myshopify.com" ||
+      SHOP === "rproject2050.myshopify.com") && {
       id: "other-links",
       content: "Others",
       panelID: "other-links-content",
@@ -306,7 +310,7 @@ const Listing = () => {
     <>
       <Page
         title="Generate Links"
-      // primaryAction={selectedTab === 0 && SHOP === 'shortly-app-demo.myshopify.com' && { content: "Generate", onAction: () => setGenerateModal(true) }}
+        // primaryAction={selectedTab === 0 && SHOP === 'shortly-app-demo.myshopify.com' && { content: "Generate", onAction: () => setGenerateModal(true) }}
       >
         <Layout>
           <Layout.Section>
@@ -327,9 +331,13 @@ const Listing = () => {
               )}
               {selectedTab === 1 && <ProductList selected={selectedTab} />}
               {selectedTab === 2 && <CollectionList selected={selectedTab} />}
+
               {selectedTab === 3 &&
-                (SHOP === "shortly-app-demo.myshopify.com" ||
-                  SHOP === "44d065-83.myshopify.com") && (
+                [
+                  "shortly-app-demo.myshopify.com",
+                  "44d065-83.myshopify.com",
+                  "rproject2050.myshopify.com",
+                ].includes(SHOP) && (
                   <Card>
                     <Box paddingBlockStart={600} paddingBlockEnd={600}>
                       <InlineStack align="center">
@@ -421,10 +429,20 @@ const Listing = () => {
                             <Tooltip content="Copy link">
                               <Button
                                 onClick={() =>
-                                  handleCopy(removeShopDomain(shopifyUrl), 'shopify-url')
+                                  handleCopy(
+                                    removeShopDomain(shopifyUrl),
+                                    "shopify-url"
+                                  )
                                 }
                               >
-                                <Icon source={copiedItems['shopify-url'] ? CheckIcon : ClipboardIcon} tone="base" />
+                                <Icon
+                                  source={
+                                    copiedItems["shopify-url"]
+                                      ? CheckIcon
+                                      : ClipboardIcon
+                                  }
+                                  tone="base"
+                                />
                               </Button>
                             </Tooltip>
                           )
@@ -473,7 +491,8 @@ const Listing = () => {
                         "--pc-block-stack-order": "column",
                         "--pc-block-stack-gap-xs": "var(--p-space-300)",
                         ...(!data?.plan_details?.features?.short_url_create && {
-                          filter: "blur(3px)", opacity: 0.2,
+                          filter: "blur(3px)",
+                          opacity: 0.2,
                         }),
                       }}
                     >
@@ -507,10 +526,20 @@ const Listing = () => {
                             <Tooltip content="Copy link">
                               <Button
                                 onClick={() =>
-                                  handleCopy(removeShopDomain(shortURL), 'custom-url')
+                                  handleCopy(
+                                    removeShopDomain(shortURL),
+                                    "custom-url"
+                                  )
                                 }
                               >
-                                <Icon source={copiedItems['custom-url'] ? CheckIcon : ClipboardIcon} tone="base" />
+                                <Icon
+                                  source={
+                                    copiedItems["custom-url"]
+                                      ? CheckIcon
+                                      : ClipboardIcon
+                                  }
+                                  tone="base"
+                                />
                               </Button>
                             </Tooltip>
                           )
@@ -561,7 +590,8 @@ const Listing = () => {
                         "--pc-block-stack-gap-xs": "var(--p-space-300)",
                         ...(!data?.plan_details?.features
                           ?.custom_url_create && {
-                          filter: "blur(3px)", opacity: 0.2,
+                          filter: "blur(3px)",
+                          opacity: 0.2,
                         }),
                       }}
                     >
@@ -594,7 +624,14 @@ const Listing = () => {
                                   )
                                 }
                               >
-                                <Icon source={copiedItems['short-url'] ? CheckIcon : ClipboardIcon} tone="base" />
+                                <Icon
+                                  source={
+                                    copiedItems["short-url"]
+                                      ? CheckIcon
+                                      : ClipboardIcon
+                                  }
+                                  tone="base"
+                                />
                               </Button>
                             </Tooltip>
                           )

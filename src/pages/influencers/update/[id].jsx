@@ -77,8 +77,7 @@ function UpdateInfluencer() {
         setCommissionValue(getInfluencerInfo.commission_value || 0);
         setCommissionBase(getInfluencerInfo?.commission_based_on);
       }
-      setStoreCurrency(response?.store_currency)
-
+      setStoreCurrency(response?.store_currency);
     }
     setLoading(false);
   }
@@ -286,25 +285,27 @@ function UpdateInfluencer() {
                     </Badge>
                   </InlineStack>
 
-                  {formData.cstatus !== "pending" && <InlineStack
-                    gap={200}
-                    align="space-between"
-                    blockAlign="center"
-                  >
-                    <Text variant="bodyMd" fontWeight="bold">
-                      Status
-                    </Text>
-                    <div className="custom-toggle-container">
-                      <label className="influencerUpdateswitch">
-                        <input
-                          type="checkbox"
-                          checked={formData?.status === "active"}
-                          onChange={handleToggleClick}
-                        />
-                        <span className="influencerUpdateslider round"></span>
-                      </label>
-                    </div>
-                  </InlineStack>}
+                  {formData.cstatus !== "pending" && (
+                    <InlineStack
+                      gap={200}
+                      align="space-between"
+                      blockAlign="center"
+                    >
+                      <Text variant="bodyMd" fontWeight="bold">
+                        Status
+                      </Text>
+                      <div className="custom-toggle-container">
+                        <label className="influencerUpdateswitch">
+                          <input
+                            type="checkbox"
+                            checked={formData?.status === "active"}
+                            onChange={handleToggleClick}
+                          />
+                          <span className="influencerUpdateslider round"></span>
+                        </label>
+                      </div>
+                    </InlineStack>
+                  )}
                 </BlockStack>
               </Card>
 
@@ -315,7 +316,8 @@ function UpdateInfluencer() {
                       Commission Terms :
                     </Text>
                     <Text tone="subdued" variant="bodyXs">
-                      Rules for earning commissions through your affiliate referrals
+                      Rules for earning commissions through your affiliate
+                      referrals
                     </Text>
                   </BlockStack>
 
@@ -342,12 +344,19 @@ function UpdateInfluencer() {
                             commissionType === "2"
                               ? "%"
                               : commissionType === "3"
-                                ? storeCurrency
-                                : ""
+                              ? storeCurrency
+                              : ""
                           }
                           min={0}
+                          mamax={commissionType === "2" ? 100 : undefined}
                           value={commissionValue}
-                          onChange={(val) => setCommissionValue(val)}
+                          onChange={(val) => {
+                            let value = Number(val);
+                            if (commissionType === "2" && value > 100) {
+                              value = 100;
+                            }
+                            setCommissionValue(val === "" ? "" : value);
+                          }}
                           autoComplete="off"
                           disabled={commissionType === "0"}
                         />

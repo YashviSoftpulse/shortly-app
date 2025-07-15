@@ -88,10 +88,36 @@ function View({
   };
   /* MORE DETAILS HANDLER END */
 
-  const utmData = data[id]?.utm_datas;
+  let utmData = {};
+  try {
+    utmData = JSON.parse(data[id]?.utm_datas || {});
+  } catch (e) {
+    console.error("Invalid JSON in utm_datas");
+  }
+
+  // Generate UTM query string only if there is valid data
+  const utmQueryString = Object.entries(utmData).length
+    ? Object.entries(utmData)
+        .map(
+          ([key, value]) =>
+            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+        )
+        .join("&")
+    : "";
+
+  let qrQueryParams = `?${data[id]?.qr_code || ""}`;
+
+  if (influencerID) {
+    qrQueryParams += `&refby=${influencerID}`;
+  }
+
+  if (utmQueryString) {
+    qrQueryParams += `&${utmQueryString}`;
+  }
+
+
 
   const buildQueryParams = (baseURL, type = "shopify") => {
-
     let domainPrefix = "";
     if (type === "custom") {
       domainPrefix = `https://${SHOP}/`;
@@ -103,14 +129,8 @@ function View({
     return `${domainPrefix}${baseURL}`;
   };
 
-  let parsedUtmData = {};
-  try {
-    parsedUtmData = JSON.parse(utmData || "{}");
-  } catch (e) {
-    console.error("Invalid JSON in utm_datas");
-  }
 
-  const validUtmEntries = Object.entries(parsedUtmData || {}).filter(
+  const validUtmEntries = Object.entries(utmData || {}).filter(
     ([key, value]) => value?.trim() !== ""
   );
 
@@ -659,7 +679,7 @@ function View({
                             removeShopDomain(
                               data[id]?.onlineStorePreviewUrl,
                               data[id]?.shopify_url
-                            ) + `?${data[id]?.qr_code}`
+                            ) + `${qrQueryParams}`
                           )}
                           size={
                             APIPath === "influencer-analytics" &&

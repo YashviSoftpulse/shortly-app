@@ -58,6 +58,7 @@ const Plans = () => {
       ? entries.slice(0, 3)
       : [];
 
+
   useEffect(() => {
     getPricingPlanData();
   }, []);
@@ -100,7 +101,6 @@ const Plans = () => {
           ) : (
             visible.map(([key, plan]) => {
               const origIndex = entries.findIndex((e) => e[0] === key);
-              console.log("origIndex", origIndex);
 
               return (
                 <Card key={key}>
@@ -160,7 +160,6 @@ const Plans = () => {
                               <List.Item>Bulk Link Generation</List.Item>
                               <List.Item>Export Links to CSV</List.Item>
                               <List.Item>Order Tracking via URL</List.Item>
-                              <List.Item>Custom Domain</List.Item>
                               <List.Item>Allow 1 Influencer</List.Item>
                               <List.Item>Allow 2 Influencer Links</List.Item>
                               <List.Item>Email & Chat Support</List.Item>
@@ -186,7 +185,7 @@ const Plans = () => {
                           {data?.plan_details?.name === "Free" &&
                             origIndex === 1 &&
                             "Upgrade To Grow"}
-                            {data?.plan_details?.name === "Free" &&
+                          {data?.plan_details?.name === "Free" &&
                             origIndex === 2 &&
                             "Upgrade To Amplify"}
                           {data?.plan_details?.name === "Grow" &&

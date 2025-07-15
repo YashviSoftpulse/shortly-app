@@ -137,6 +137,7 @@ const Orders = ({ selectedTab }) => {
                   )}/orders/${val?.order_id}`
                 )
               }
+              disabled={!data?.plan_details?.features?.orders}
               variant="plain"
             >
               {val?.order_name}
@@ -229,7 +230,7 @@ const Orders = ({ selectedTab }) => {
                         value: "DESC",
                       },
                     ]}
-                    label="Sort by"
+                    label="Sort by :"
                     labelInline
                   />
                 }

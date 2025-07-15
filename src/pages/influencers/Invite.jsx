@@ -26,7 +26,7 @@ function InviteInfluencer() {
   const [commissionValue, setCommissionValue] = useState(10);
   const [commissionBase, setCommissionBase] = useState("1");
   const [isSaving, setIsSaving] = useState(false);
-  const { storeCurrency } = location.state;
+  const { storeCurrency } = location.state || "";
 
   const handleChange = (field) => (value) => {
     setFormData((prev) => ({
@@ -131,8 +131,8 @@ function InviteInfluencer() {
                 />
 
                 <TextField
-                  type="tel"
-                  maxLength={10}
+                  type="integer"
+                  maxLength={12}
                   label="Phone Number"
                   value={formData.phone}
                   onChange={handleChange("phone")}
@@ -180,8 +180,15 @@ function InviteInfluencer() {
                         : ""
                     }
                     min={0}
+                    max={commissionType === "2" && 100}
                     value={commissionValue}
-                    onChange={setCommissionValue}
+                    onChange={(val) => {
+                      let value = Number(val);
+                      if (commissionType === "2" && value > 100) {
+                        value = 100;
+                      }
+                      setCommissionValue(val === "" ? "" : value);
+                    }}
                     autoComplete="off"
                     style={{ flex: 1 }}
                   />
