@@ -51,7 +51,7 @@ function EditTemplate() {
     getEmailNotification();
   }, []);
 
-  const sendTestEmail = () => {
+  const sendTestEmail = async () => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (
       testEmail === null ||
@@ -73,17 +73,20 @@ function EditTemplate() {
       "type",
       templateSettings?.name === "Invite" ? "invite" : "re_invite"
     );
-    const suffixUrl = "test-email";
-    const response = fetchData(getApiURL(suffixUrl), formdata);
-    if (response.status === 200 || response.error === false) {
-      setTestModal(false);
-      setTestLoading(false);
-      shopify.toast.show(response.message, { duration: 3000 });
-    } else {
-      setTestLoading(false);
-      setTestModal(false);
-      shopify.toast.show(response.message, { duration: 3000, isError: true });
-    }
+
+    fetchData(getApiURL(suffixUrl), formdata).then((response) => {
+      if (response.status === true || response.error === false) {
+        shopify.toast.show(response.message, { duration: 3000 });
+        setTestModal(false);
+        setTestLoading(false);
+      } else {
+        setTestLoading(false);
+        setTestModal(false);
+        shopify.toast.show(response.message, { duration: 3000, isError: true });
+      }
+    });
+    setTestModal(false);
+    setTestLoading(false);
   };
 
   const handleSave = async () => {
@@ -110,6 +113,7 @@ function EditTemplate() {
     setIsSaving(false);
     if (response.status === true) {
       shopify.toast.show(response.message, { duration: 3000 });
+      navigate(`/settings/email-notification${window.location.search}`);
       getEmailNotification();
     } else {
       setIsSaving(false);
@@ -308,7 +312,7 @@ function EditTemplate() {
           </Card>
         </Layout.Section>
         <Layout.Section></Layout.Section>
-         <Layout.Section></Layout.Section>
+        <Layout.Section></Layout.Section>
       </Layout>
       <Modal
         size="large"

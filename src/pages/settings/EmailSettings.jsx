@@ -71,6 +71,7 @@ function EmailSettings() {
     "image/heic",
     "image/jpg",
   ];
+
   const handleDropZoneDrop = useCallback(
     (_dropFiles, acceptedFiles, _rejectedFiles) => {
       setLogoError(false);
@@ -101,40 +102,52 @@ function EmailSettings() {
   );
 
   const handleVerify = () => {
-    const suffixUrl = "verify";
     if (
       fromEmail === null ||
       fromEmail?.trim() === "" ||
       fromEmail === undefined
     ) {
       setVerifyEmailErrorMessage("Sender Email is required");
+      shopify.toast.show("Sender Email is required", {
+        isError: true,
+        duration: 3000,
+      });
       return false;
     }
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(fromEmail)) {
       setVerifyEmailErrorMessage("Please enter a valid email address");
+      shopify.toast.show("Please enter a valid email address", {
+        isError: true,
+        duration: 3000,
+      });
       return false;
     }
+
     setVerifyEmailErrorMessage(false);
     setVerifyLoader(true);
     const formdata = new FormData();
     formdata.append("email", fromEmail);
 
-    const response = fetchData(getApiURL(suffixUrl), formdata);
+    fetchData(getApiURL("verify"), formdata)
+      .then((response) => {
+        if (response.status === true) {
+          shopify.toast.show(response.message, { duration: 3000 });
+          setVerifyLoader(false);
 
-    if (response.status === true) {
-      shopify.toast.show(response.message, { duration: 3000 });
-      setVerifyLoader(false);
-      getEmailData();
-    } else {
-      shopify.toast.show(response.message, {
-        duration: 3000,
+          getEmailData();
+        } else {
+          shopify.toast.show(response.message, {
+            duration: 3000,
+            isError: true,
+          });
+          setVerifyLoader(false);
+        }
+      })
+      .catch((error) => {
+        shopify.toast.show(error, { isError: true, duration: 3000 });
+        setVerifyLoader(false);
       });
-      setVerifyLoader(false);
-    }
-
-    shopify.toast.show(error, { isError: true, duration: 3000 });
-    setVerifyLoader(false);
   };
 
   const getEmailData = async () => {
@@ -309,14 +322,18 @@ function EmailSettings() {
     formdata.append("type", emailType);
     const suffixUrl = "test-email";
     fetchData(getApiURL(suffixUrl), formdata).then((response) => {
-      setTestLoading(false);
       if (response.status === 200 || response.error === false) {
         setTestModal(false);
+        setTestLoading(false);
         shopify.toast.show(response.message, { duration: 3000 });
       } else {
+        setTestModal(false);
+        setTestLoading(false);
         shopify.toast.show(response.message, { duration: 3000, isError: true });
       }
     });
+    setTestModal(false);
+    setTestLoading(false);
   };
 
   const handleSave = () => {
@@ -337,6 +354,14 @@ function EmailSettings() {
       !buttonBackgroundColor.trim() === ""
     ) {
       shopify.toast.show("Please enter valid background color.", {
+        isError: true,
+        duration: 3000,
+      });
+    } else if (
+      !notificationSettingsData.logo_title ||
+      notificationSettingsData.logo_title.trim() === ""
+    ) {
+      shopify.toast.show("Please enter valid disaplay name.", {
         isError: true,
         duration: 3000,
       });
@@ -388,6 +413,7 @@ function EmailSettings() {
         setSaveLoader(false);
         if (response.status === true) {
           shopify.toast.show(response.message, { duration: 3000 });
+          navigate(`/settings${window.location.search}`);
         } else {
           shopify.toast.show(response.message, {
             duration: 3000,
@@ -400,7 +426,7 @@ function EmailSettings() {
 
   return loading ? (
     <Page
-      title="Email Notification Settings"
+      title="Email Notification"
       primaryAction={{
         content: "Save",
       }}
@@ -427,7 +453,7 @@ function EmailSettings() {
   ) : (
     <div className="email-page">
       <Page
-        title="Email Notification Settings"
+        title="Email Notification"
         subtitle="Customize email notifications to receive updates on your account status"
         primaryAction={{
           content: "Save",
@@ -446,7 +472,6 @@ function EmailSettings() {
               action={{
                 content: (
                   <InlineStack gap={200}>
-                    {" "}
                     <svg
                       width="16"
                       height="16"
@@ -661,6 +686,14 @@ function EmailSettings() {
                               }))
                             }
                             disabled={data?.plan_details?.name === "Free"}
+                            error={
+                              (!isLogo &&
+                                notificationSettingsData.logo_title ===
+                                  undefined) ||
+                              notificationSettingsData.logo_title === ""
+                                ? true
+                                : false
+                            }
                           />
                         </BlockStack>
                       </>
@@ -673,7 +706,7 @@ function EmailSettings() {
               title="Template Appearance"
               description="Modify color schemes and border radius to align your emails with your store’s visual style."
             >
-                  <Card padding={data?.plan_details?.name === "Free" ? 400 : 400}>
+              <Card padding={data?.plan_details?.name === "Free" ? 400 : 400}>
                 <div
                   className="Polaris-Box"
                   style={{

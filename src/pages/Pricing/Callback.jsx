@@ -1,10 +1,12 @@
 import React, { useEffect } from "react";
 import { fetchData, getApiURL } from "../../action";
+import { useNavigate } from "react-router-dom";
 
 function Callback() {
   const urlParams = new URLSearchParams(window.location.search);
   const planType = urlParams.get("plan_type");
   const chargeId = urlParams.get("charge_id");
+  const navigate = useNavigate();
 
   const getPricingPlan = async () => {
     const formData = new FormData();
@@ -14,7 +16,7 @@ function Callback() {
 
     if (response.status === true) {
       shopify.toast.show(response.message, { duration: 3000 });
-      window.open(`/dashboard${window.location.search}`);
+      window.location.href = `/dashboard${window.location.search}`;
     }
   };
 

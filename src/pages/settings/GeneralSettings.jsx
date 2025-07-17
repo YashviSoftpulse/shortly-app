@@ -140,7 +140,79 @@ function GeneralSettings() {
     getEmailNotification();
   }, []);
 
+  function cssTextToJSON(cssText) {
+    const cssObject = {};
+    const regex = /([^{]+){([^}]+)}/g;
+    let match;
+
+    while ((match = regex.exec(cssText)) !== null) {
+      const selector = match[1].trim();
+      const rules = match[2].trim().split(";").filter(Boolean);
+
+      const ruleObject = {};
+      for (let rule of rules) {
+        const [property, value] = rule.split(":");
+        if (property && value) {
+          ruleObject[property.trim()] = value.trim();
+        }
+      }
+
+      if (Object.keys(ruleObject).length > 0) {
+        cssObject[selector] = ruleObject;
+      }
+    }
+
+    return cssObject;
+  }
+
   const handleSave = async () => {
+    const validationErrors = [];
+    if (frontLogo !== true && !frontName.trim()) {
+      validationErrors.push("Brand Name is required.");
+    }
+
+    if (frontLogo && (!files.length || (!files[0].url && !files[0].type))) {
+      validationErrors.push("Please upload a logo file.");
+    }
+    const isValidHex = (color) => /^#[0-9A-F]{6}$/i.test(color);
+
+    if (!isValidHex(textColor)) {
+      validationErrors.push("Text color must be a valid hex code.");
+    }
+
+    if (!isValidHex(backgroundColor)) {
+      validationErrors.push("Background color must be a valid hex code.");
+    }
+
+    if (!isValidHex(menuActiveBackground)) {
+      validationErrors.push("Menu Active Background must be a valid hex code.");
+    }
+
+    if (!isValidHex(influncerTagBackground)) {
+      validationErrors.push(
+        "Influencer Tag Background must be a valid hex code."
+      );
+    }
+
+    let cssJsonObject = {};
+
+    if (typeof customCss === "string") {
+      try {
+        cssJsonObject = JSON.parse(customCss);
+      } catch {
+        cssJsonObject = cssTextToJSON(customCss);
+      }
+    } else {
+      cssJsonObject = customCss;
+    }
+
+    if (validationErrors.length > 0) {
+      validationErrors.forEach((msg) =>
+        shopify.toast.show(msg, { duration: 3000, isError: true })
+      );
+      return;
+    }
+
     setIsSaving(true);
     const formdata = new FormData();
     if (files.length > 0 && !files[0].url) {
@@ -155,7 +227,7 @@ function GeneralSettings() {
     };
 
     formdata.append("front_title", frontName);
-    formdata.append("custom_css", JSON.stringify(customCss));
+    formdata.append("custom_css", JSON.stringify(cssJsonObject));
     formdata.append("storefront_view", storefrontView);
     formdata.append("storefront_css", JSON.stringify(updatedStorefrontCSS));
     formdata.append("front_show_logo", frontLogo);
@@ -168,6 +240,7 @@ function GeneralSettings() {
     if (response?.status === true) {
       setIsSaving(false);
       shopify.toast.show("Settings save successfully!", { duration: 3000 });
+      navigate(`/settings${window.location.search}`);
     } else {
       setIsSaving(false);
       shopify.toast.show(response?.message, { duration: 3000, isError: true });

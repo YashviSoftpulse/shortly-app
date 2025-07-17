@@ -606,7 +606,7 @@ const Payouts = forwardRef((props, ref) => {
                 labelHidden
                 value={searchValue}
                 onChange={handleSearchChange}
-                placeholder="Search Payouts"
+                placeholder="Search by date and amount"
                 clearButton
                 onClearButtonClick={() => handleSearchChange("")}
                 disabled={data?.plan_details?.name === "Free"}
@@ -772,17 +772,7 @@ const Payouts = forwardRef((props, ref) => {
               <Text variant="bodyMd">Note</Text>
               <Text variant="bodySm">{influencerInfo?.note || "-"}</Text>
             </InlineStack>
-            <InlineStack align="space-between">
-              <Text variant="bodyMd">Status</Text>
-              <Text variant="bodySm">
-                <Badge tone={statusToneMap[influencerInfo?.status]}>
-                  {typeof influencerInfo?.status === "string"
-                    ? influencerInfo?.status.charAt(0).toUpperCase() +
-                      influencerInfo?.status.slice(1).toLowerCase()
-                    : ""}
-                </Badge>
-              </Text>
-            </InlineStack>
+           
 
             <InlineStack align="space-between">
               <Text variant="bodyMd">Attachement</Text>

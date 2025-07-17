@@ -29,10 +29,18 @@ function InviteInfluencer() {
   const { storeCurrency } = location.state || "";
 
   const handleChange = (field) => (value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    if (field === "phone") {
+      const numericValue = value.replace(/\D/g, "");
+      setFormData((prev) => ({
+        ...prev,
+        [field]: numericValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
   };
 
   const validate = () => {
@@ -131,7 +139,7 @@ function InviteInfluencer() {
                 />
 
                 <TextField
-                  type="integer"
+                  type="tel"
                   maxLength={12}
                   label="Phone Number"
                   value={formData.phone}
@@ -180,15 +188,15 @@ function InviteInfluencer() {
                         : ""
                     }
                     min={0}
-                    max={commissionType === "2" && 100}
+                       mamax={commissionType === "2" ? 100 : undefined}
                     value={commissionValue}
-                    onChange={(val) => {
-                      let value = Number(val);
-                      if (commissionType === "2" && value > 100) {
-                        value = 100;
-                      }
-                      setCommissionValue(val === "" ? "" : value);
-                    }}
+                     onChange={(val) => {
+                            let value = Number(val);
+                            if (commissionType === "2" && value > 100) {
+                              value = 100;
+                            }
+                            setCommissionValue(val === "" ? "" : value);
+                          }}
                     autoComplete="off"
                     style={{ flex: 1 }}
                   />

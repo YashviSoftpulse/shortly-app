@@ -599,10 +599,7 @@ function Dashboard() {
                   </Text>
                   
                   <Text as="h4" variant="headingLg">
-                    {storeCurrency +
-                      (vistorAnalytics?.total_sales === undefined
-                        ? 0
-                        : formatNumber(vistorAnalytics?.total_sales)) || 0}
+                   {storeCurrency + formatNumber(Number(vistorAnalytics?.total_sales || 0).toFixed(2))}
                   </Text>
                 </BlockStack>
               </div>

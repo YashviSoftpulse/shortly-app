@@ -8,6 +8,7 @@ import InfluencerDashboard from "./pages/influencers/Dashboard/[id]";
 import EmailSettings from "./pages/settings/EmailSettings";
 import GeneralSettings from "./pages/settings/GeneralSettings";
 import EditTemplate from "./pages/settings/emailSettings/Edit";
+// import Callback from "./pages/Pricing/Callback";
 
 /**
  * File-based routing.
@@ -42,7 +43,7 @@ export default function Routes({ pages }) {
       <ReactRouterRoutes>
         {routeComponents}
         {Dashboard && <Route path="/dashboard" element={<Dashboard />} />}
-
+        {/* <Route path="/pricing/callback" element={<Callback />} /> */}
         <Route path="/influencer/invite" element={<InviteInfluencer />} />
         <Route path="/influencer/update/:id" element={<UpdateInfluencer />} />
         <Route

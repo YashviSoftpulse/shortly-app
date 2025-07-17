@@ -267,6 +267,7 @@ function Details() {
     if (response.status === true) {
       reloardProductList(false, pageNumber);
       shopify.toast.show(response.message, { duration: 3000 });
+      navigate(`/listing${window.location.search}`)
     } else {
       shopify.toast.show(response?.message, { duration: 3000, isError: true });
     }
@@ -586,7 +587,7 @@ function Details() {
 
   let utmData = {};
   try {
-    utmData = JSON.parse(productsData[productId]?.utm_datas || "{}");
+    utmData = JSON.parse(productsData[productId]?.utm_datas || {});
   } catch (e) {
     console.error("Invalid JSON in utm_datas");
   }
@@ -1647,8 +1648,6 @@ function Details() {
                   />
                 </div>
               </BlockStack>
-              {console.log("validUtmEntries", validUtmEntries)}
-
               {validUtmEntries.length > 0 && (
                 <BlockStack gap={200}>
                   <InlineStack gap={100}>
