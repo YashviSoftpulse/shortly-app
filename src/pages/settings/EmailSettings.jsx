@@ -55,6 +55,7 @@ function EmailSettings() {
   const [testEmailError, setTestEmailError] = useState(false);
   const navigate = useNavigate();
   const { data, error } = useApiData();
+  const [emailNameError, setEmailNameError] = useState("");
 
   const urlParams = new URLSearchParams(window.location.search);
   const params = {};
@@ -358,9 +359,10 @@ function EmailSettings() {
         duration: 3000,
       });
     } else if (
-      !notificationSettingsData.logo_title ||
+      isLogo === false &&
       notificationSettingsData.logo_title.trim() === ""
     ) {
+      setEmailNameError("Please enter valid disaplay name.");
       shopify.toast.show("Please enter valid disaplay name.", {
         isError: true,
         duration: 3000,
@@ -413,7 +415,8 @@ function EmailSettings() {
         setSaveLoader(false);
         if (response.status === true) {
           shopify.toast.show(response.message, { duration: 3000 });
-          navigate(`/settings${window.location.search}`);
+       
+          setEmailNameError("");
         } else {
           shopify.toast.show(response.message, {
             duration: 3000,
@@ -686,14 +689,7 @@ function EmailSettings() {
                               }))
                             }
                             disabled={data?.plan_details?.name === "Free"}
-                            error={
-                              (!isLogo &&
-                                notificationSettingsData.logo_title ===
-                                  undefined) ||
-                              notificationSettingsData.logo_title === ""
-                                ? true
-                                : false
-                            }
+                            error={emailNameError}
                           />
                         </BlockStack>
                       </>
@@ -795,7 +791,7 @@ function EmailSettings() {
                 >
                   <ResourceList
                     resourceName={{ singular: "template", plural: "templates" }}
-                    items={Object.entries(notificationSettingsData).filter(
+                    items={Object.entries(notificationSettingsData || {}).filter(
                       ([key, item]) =>
                         item?.hasOwnProperty("is_enable") &&
                         item?.hasOwnProperty("subject") &&

@@ -593,7 +593,7 @@ function Details() {
   }
 
   const utmQueryString = Object.entries(utmData).length
-    ? Object.entries(utmData)
+    ? Object.entries(utmData || {})
         .map(
           ([key, value]) =>
             `${encodeURIComponent(key)}=${encodeURIComponent(value)}`

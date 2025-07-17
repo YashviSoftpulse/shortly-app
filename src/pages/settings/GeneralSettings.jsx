@@ -38,6 +38,7 @@ function GeneralSettings() {
   const [menuActiveBackground, seMenuActiveBackground] = useState("#fafaf9");
   const [influncerTagBackground, setInfluncerTagBackground] =
     useState("#fafaf9");
+  const [brandNameError, setBrandNameError] = useState("");
   const { data, loading, error } = useApiData();
   const navigate = useNavigate();
 
@@ -167,9 +168,6 @@ function GeneralSettings() {
 
   const handleSave = async () => {
     const validationErrors = [];
-    if (frontLogo !== true && !frontName.trim()) {
-      validationErrors.push("Brand Name is required.");
-    }
 
     if (frontLogo && (!files.length || (!files[0].url && !files[0].type))) {
       validationErrors.push("Please upload a logo file.");
@@ -192,6 +190,16 @@ function GeneralSettings() {
       validationErrors.push(
         "Influencer Tag Background must be a valid hex code."
       );
+    }
+
+    let brandNameValid = true;
+
+    if (frontLogo === false && !frontName.trim()) {
+      brandNameValid = false;
+      setBrandNameError("Brand Name is required.");
+      validationErrors.push("Brand Name is required.");
+    } else {
+      setBrandNameError("");
     }
 
     let cssJsonObject = {};
@@ -240,7 +248,6 @@ function GeneralSettings() {
     if (response?.status === true) {
       setIsSaving(false);
       shopify.toast.show("Settings save successfully!", { duration: 3000 });
-      navigate(`/settings${window.location.search}`);
     } else {
       setIsSaving(false);
       shopify.toast.show(response?.message, { duration: 3000, isError: true });
@@ -437,15 +444,25 @@ function GeneralSettings() {
                         </BlockStack>
                       )}
 
-                      <TextField
-                        label="Brand Name"
-                        type="text"
-                        autoComplete="off"
-                        requiredIndicator
-                        value={frontName}
-                        onChange={setFrontName}
-                        disabled={data?.plan_details?.name === "Free"}
-                      />
+                      {frontLogo === false && (
+                        <BlockStack gap={200}>
+                          <Banner>
+                            Customize your brand appearance by adding a logo. If
+                            logo is not enable, your brand name will be
+                            displayed instead.
+                          </Banner>
+                          <TextField
+                            label="Brand Name"
+                            type="text"
+                            autoComplete="off"
+                            requiredIndicator
+                            value={frontName}
+                            onChange={setFrontName}
+                            disabled={data?.plan_details?.name === "Free"}
+                            error={brandNameError}
+                          />
+                        </BlockStack>
+                      )}
                     </BlockStack>
                     <Divider />
                     <BlockStack gap={300}>

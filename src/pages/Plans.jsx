@@ -94,9 +94,9 @@ const Plans = () => {
               ))}
             </Grid>
           ) : (
-            Object.entries(planDetail).map(([key, plan], origIndex) => {
+            Object.entries(planDetail || {}).map(([key, plan], origIndex) => {
               const activePlanName = data?.plan_details?.name;
-              const currentPlanName = plan.name;
+              const currentPlanName = plan?.name;
               const isActive = activePlanName === currentPlanName;
               return (
                 <Card key={key}>
@@ -124,7 +124,7 @@ const Plans = () => {
                     <Divider />
                     <BlockStack gap={500}>
                       <List>
-                        {Object.entries(plan.content)?.map(
+                        {Object.entries(plan?.content || {})?.map(
                           ([index, content]) => {
                             return <List.Item key={index}>{content}</List.Item>;
                           }

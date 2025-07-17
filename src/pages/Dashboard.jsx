@@ -155,7 +155,7 @@ function Dashboard() {
 
   const PlatformsAnalyticsChart = () => {
     const platforms = vistorAnalytics?.platforms || {};
-    const data = Object.entries(platforms).map(([name, value]) => ({
+    const data = Object.entries(platforms || {}).map(([name, value]) => ({
       key: name,
       value: value,
     }));
@@ -215,7 +215,7 @@ function Dashboard() {
   };
   const initDeviceUsageChart = () => {
     const platforms = vistorAnalytics.devices || {};
-    const data = Object.entries(platforms).map(([name, value]) => ({
+    const data = Object.entries(platforms || {}).map(([name, value]) => ({
       key: name,
       value: value,
     }));
